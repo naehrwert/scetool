@@ -1,0 +1,121 @@
+scetool (C) 2011-2013 by naehrwert
+NP local license handling (C) 2012 by flatz
+
+==> Setup <==
+ - /data/keys : Keyfile.
+ - /data/ldr_curves : Loader curves (7744 bytes).
+ - /data/vsh_curves : VSH curves (360 bytes).
+ - /data/idps : IDPS as binary file
+ - /data/act.dat : act.dat
+ - /rifs/* : *.rif files
+ - /raps/* : *.rap files
+
+==> Keyfile Format <==
+ [keyname]
+ type={SELF, RVK, PKG, SPP, OTHER}
+ revision={00, ..., 18, 8000}
+ version={..., 0001000000000000, ...}
+ self_type={LV0, LV1, LV2, APP, ISO, LDR, UNK_7, NPDRM}
+ key=...
+ erk=...
+ riv=...
+ pub=...
+ priv=...
+ ctype=...
+
+==> Keyset Example <==
+ [metldr]
+ type=SELF
+ revision=00
+ self_type=LDR
+ erk=0000000000000000000000000000000000000000000000000000000000000000
+ riv=00000000000000000000000000000000
+ pub=00000000000000000000000000000000000000000000000000000000000000000000000000000000
+ priv=000000000000000000000000000000000000000000
+ ctype=00
+
+==> NPDRM Key(set) Names <==
+ - [NP_tid]: Title ID OMAC1 key.
+ - [NP_ci]: Control info OMAC1 key.
+ - [NP_klic_free]: Free klicensee.
+ - [NP_klic_key]: klicensee key.
+ - [NP_idps_const]: IDPS constant.
+ - [NP_rif_key]: rif key.
+ - [NP_sig]: Footer signature ECDSA keyset.
+
+==> Override Keyset <==
+ It should be a single hex-string consisting of: 
+ 32 bytes (Key) 16 bytes (IV) 40 bytes (Pub) 21 bytes (Priv) 1 byte (CType).
+
+==> Help Text <==
+USAGE: scetool [options] command
+COMMANDS                Parameters            Explanation
+ -h, --help                                   Print this help.
+ -k, --print-keys                             List keys.
+ -i, --print-infos      File-in               Print SCE file info.
+ -d, --decrypt          File-in File-out      Decrypt/dump SCE file.
+ -e, --encrypt          File-in File-out      Encrypt/create SCE file.
+OPTIONS                 Possible Values       Explanation
+ -v, --verbose                                Enable verbose output.
+ -r, --raw                                    Enable raw value output.
+ -t, --template         File-in               Template file (SELF only)
+ -0, --sce-type         SELF/RVK/PKG/SPP      SCE File Type
+ -1, --compress-data    TRUE/FALSE(default)   Whether to compress data or not.
+ -s, --skip-sections    TRUE(default)/FALSE   Whether to skip sections or not.
+ -2, --key-revision     e.g. 00,01,...,0A,... Key Revision
+ -m, --meta-info        64 bytes              Use provided meta info to decrypt.
+
+ -K, --keyset           32(Key)16(IV)
+                        40(Pub)21(Priv)1(CT)  Override keyset.
+ -3, --self-auth-id     e.g. 1010000001000003 Authentication ID
+ -4, --self-vendor-id   e.g. 01000002         Vendor ID
+ -5, --self-type        LV0/LV1/LV2/APP/ISO/
+                        LDR/NPDRM             SELF Type
+ -A, --self-app-version e.g. 0001000000000000 Application Version
+ -6, --self-fw-version  e.g. 0003004100000000 Firmware Version
+ -7, --self-add-shdrs   TRUE(default)/FALSE   Whether to add ELF shdrs or not.
+ -8, --self-ctrl-flags  32 bytes              Override control flags.
+ -9, --self-cap-flags   32 bytes              Override capability flags.
+ -b, --np-license-type  LOCAL/FREE            License Type
+ -c, --np-app-type      SPRX/EXEC/USPRX/UEXEC App Type (U* for updates)
+ -f, --np-content-id                          Content ID
+ -l, --np-klicensee     16 bytes              Override klicensee.
+ -g, --np-real-fname    e.g. EBOOT.BIN        Real Filename
+ -j, --np-add-sig       TRUE/FALSE(default)   Whether to add a NP sig. or not.
+
+==> History <==
+Version 0.2.9
+ - Plaintext sections will now take less space in metadata header keys array.
+ - Added option to specifiy a template SELF to take configuration values from.
+ - Added option to override the keyset used for en-/decryption.
+ - Fixed NP application types.
+ - [Firmware Version] will now be written to control info only.
+ - [Application Version] will now be written to application info only.
+Version 0.2.8 (intermediate release):
+ - Fixed minor bugs where scetool would crash.
+ - Added SPP parsing.
+ - Decrypting RVK/SPP will now write header+data to file.
+Version 0.2.7:
+ - Added local NP license handling.
+ - Added option to override klicensee.
+ - Added option to disable section skipping (in SELF generation).
+Version 0.2.5:
+ - Added option to use provided metadata info for decryption.
+ - "PS3" path environment variable will now be searched for keys/ldr_curves/vsh_curves too.
+Version 0.2.4:
+ - Added option to display raw values.
+ - Moved factory Auth-IDs to <public build> (as they are on ps3devwiki now).
+Version 0.2.2:
+ - Added options to override control/capability flags (32 bytes each).
+ - Fixed where a false keyset would crash scetool when decrypting a file.
+ - Some source level changes and optimizations.
+Version 0.2.1:
+ - zlib is required to use scetool.
+ - 'sdk_type' was changed to 'revision' in data/keys.
+ 
+==> Greetings to <==
+ - ps3dev.net
+ - you know who you are!
+
+==> Trivia <==
+ http://bit.ly/QUji89
