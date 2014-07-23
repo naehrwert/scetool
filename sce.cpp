@@ -850,12 +850,20 @@ BOOL sce_decrypt_header(sce_buffer_ctxt_t *ctxt, u8 *metadata_info, u8 *keyset)
 	if(ctxt->metai->key_pad[0] != 0x00 || ctxt->metai->iv_pad[0] != 0x00)
 		return FALSE;
 
+	//Backup IV, next aes_crypt_ctr alters last 2 bytes
+	u8 biv[0x10];
+	memcpy(&biv, ctxt->metai->iv, 0x10);
+
 	//Decrypt metadata header, metadata section headers and keys.
 	nc_off = 0;
 	aes_setkey_enc(&aes_ctxt, ctxt->metai->key, METADATA_INFO_KEYBITS);
 	aes_crypt_ctr(&aes_ctxt, 
 		ctxt->sceh->header_len - (sizeof(sce_header_t) + ctxt->sceh->metadata_offset + sizeof(metadata_info_t)), 
 		&nc_off, ctxt->metai->iv, sblk, (u8 *)ctxt->metah, (u8 *)ctxt->metah);
+
+	//Restore IV from its backup if changed
+	if(memcmp(ctxt->metai->iv, biv, 0x10) != 0)
+		memcpy(ctxt->metai->iv, &biv, 0x10);
 
 	//Fixup headers.
 	_es_metadata_header(ctxt->metah);
