@@ -1,4 +1,4 @@
-CC=gcc
+CC=g++
 CFLAGS=-g -O0 -Wall
 OS_TARGET=scetool
 LDFLAGS=-lz
