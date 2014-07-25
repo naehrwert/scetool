@@ -327,13 +327,19 @@ void frontend_print_infos(s8 *file)
 			if(sce_decrypt_header(ctxt, meta_info, keyset))
 			{
 				_LOG_VERBOSE("Header decrypted.\n");
-				if(sce_decrypt_data(ctxt))
-					_LOG_VERBOSE("Data decrypted.\n");
-				else
-					printf("[*] Warning: Could not decrypt data.\n");
+				
+				//Just deal with spkg_hdr.1 files now, no need to decrypt whole PKG.
+				if(ctxt->sceh->header_type != SCE_HEADER_TYPE_PKG)
+				{
+					if(sce_decrypt_data(ctxt))
+						_LOG_VERBOSE("Data decrypted.\n");
+					else
+						printf("[*] Warning: Could not decrypt data.\n");
+				}
 			}
 			else
 				printf("[*] Warning: Could not decrypt header.\n");
+				
 			sce_print_info(stdout, ctxt);
 			if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SELF)
 				self_print_info(stdout, ctxt);
@@ -341,6 +347,7 @@ void frontend_print_infos(s8 *file)
 				rvk_print(stdout, ctxt);
 			else if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SPP && ctxt->mdec == TRUE)
 				spp_print(stdout, ctxt);
+				
 			free(ctxt);
 		}
 		else
