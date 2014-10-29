@@ -47,16 +47,16 @@ static void _get_phdr_flags(s8 *str, u64 flags)
 void _print_self_header(FILE *fp, self_header_t *h)
 {
 	fprintf(fp, "[*] SELF Header:\n");
-	fprintf(fp, " Header Type         0x%016llX\n", h->header_type);
-	fprintf(fp, " App Info Offset     0x%016llX\n", h->app_info_offset);
-	fprintf(fp, " ELF Offset          0x%016llX\n", h->elf_offset);
-	fprintf(fp, " PH Offset           0x%016llX\n", h->phdr_offset);
-	fprintf(fp, " SH Offset           0x%016llX\n", h->shdr_offset);
-	fprintf(fp, " Section Info Offset 0x%016llX\n", h->section_info_offset);
-	fprintf(fp, " SCE Version Offset  0x%016llX\n", h->sce_version_offset);
-	fprintf(fp, " Control Info Offset 0x%016llX\n", h->control_info_offset);
-	fprintf(fp, " Control Info Size   0x%016llX\n", h->control_info_size);
-	//fprintf(fp, " padding             0x%016llX\n", h->padding);
+	fprintf(fp, " Header Type         0x%016llX\n", _ES64(h->header_type));
+	fprintf(fp, " App Info Offset     0x%016llX\n", _ES64(h->app_info_offset));
+	fprintf(fp, " ELF Offset          0x%016llX\n", _ES64(h->elf_offset));
+	fprintf(fp, " PH Offset           0x%016llX\n", _ES64(h->phdr_offset));
+	fprintf(fp, " SH Offset           0x%016llX\n", _ES64(h->shdr_offset));
+	fprintf(fp, " Section Info Offset 0x%016llX\n", _ES64(h->section_info_offset));
+	fprintf(fp, " SCE Version Offset  0x%016llX\n", _ES64(h->sce_version_offset));
+	fprintf(fp, " Control Info Offset 0x%016llX\n", _ES64(h->control_info_offset));
+	fprintf(fp, " Control Info Size   0x%016llX\n", _ES64(h->control_info_size));
+	//fprintf(fp, " padding             0x%016llX\n", _ES64(h->padding));
 }
 
 void _print_app_info(FILE *fp, app_info_t *ai)
@@ -65,34 +65,34 @@ void _print_app_info(FILE *fp, app_info_t *ai)
 
 	fprintf(fp, "[*] Application Info:\n");
 	
-	name = _get_name(_auth_ids, ai->auth_id);
+	name = _get_name(_auth_ids, _ES64(ai->auth_id));
 	if(name != NULL)
 	{
 		fprintf(fp, " Auth-ID   ");
-		_PRINT_RAW(fp, "0x%016llX ", ai->auth_id);
+		_PRINT_RAW(fp, "0x%016llX ", _ES64(ai->auth_id));
 		fprintf(fp, "[%s]\n", name);
 	}
 	else
-		fprintf(fp, " Auth-ID   0x%016llX\n", ai->auth_id);
+		fprintf(fp, " Auth-ID   0x%016llX\n", _ES64(ai->auth_id));
 	
-	name = _get_name(_vendor_ids, ai->vendor_id);
+	name = _get_name(_vendor_ids, _ES32(ai->vendor_id));
 	if(name != NULL)
 	{
 		fprintf(fp, " Vendor-ID ");
-		_PRINT_RAW(fp, "0x%08X ", ai->vendor_id);
+		_PRINT_RAW(fp, "0x%08X ", _ES32(ai->vendor_id));
 		fprintf(fp, "[%s]\n", name);
 	}
 	else
-		fprintf(fp, " Vendor-ID 0x%08X\n", ai->vendor_id);
+		fprintf(fp, " Vendor-ID 0x%08X\n", _ES32(ai->vendor_id));
 
-	name = _get_name(_self_types, ai->self_type);
+	name = _get_name(_self_types, _ES32(ai->self_type));
 	if(name != NULL)
 		fprintf(fp, " SELF-Type [%s]\n", name);
 	else
-		fprintf(fp, " SELF-Type 0x%08X\n", ai->self_type);
+		fprintf(fp, " SELF-Type 0x%08X\n", _ES32(ai->self_type));
 
-	fprintf(fp, " Version   %s\n", sce_version_to_str(ai->version));
-	//fprintf(fp, " padding   0x%016llX\n", ai->padding);
+	fprintf(fp, " Version   %s\n", sce_version_to_str(_ES64(ai->version)));
+	//fprintf(fp, " padding   0x%016llX\n", _ES64(ai->padding));
 }
 
 void _print_section_info_header(FILE *fp)
@@ -111,10 +111,10 @@ void _print_section_info(FILE *fp, section_info_t *si, u32 idx)
 void _print_sce_version(FILE *fp, sce_version_t *sv)
 {
 	fprintf(fp, "[*] SCE Version:\n");
-	fprintf(fp, " Header Type 0x%08X\n", sv->header_type);
-	fprintf(fp, " Present     [%s]\n", sv->present == SCE_VERSION_PRESENT ? "TRUE" : "FALSE");
-	fprintf(fp, " Size        0x%08X\n", sv->size);
-	fprintf(fp, " unknown_3   0x%08X\n", sv->unknown_3);
+	fprintf(fp, " Header Type 0x%08X\n", _ES32(sv->header_type));
+	fprintf(fp, " Present     [%s]\n", _ES32(sv->present) == SCE_VERSION_PRESENT ? "TRUE" : "FALSE");
+	fprintf(fp, " Size        0x%08X\n", _ES32(sv->size));
+	fprintf(fp, " unknown_3   0x%08X\n", _ES32(sv->unknown_3));
 }
 
 void _print_control_info(FILE *fp, control_info_t *ci)
@@ -123,27 +123,27 @@ void _print_control_info(FILE *fp, control_info_t *ci)
 
 	fprintf(fp, "[*] Control Info\n");
 
-	name = _get_name(_control_info_types, ci->type);
+	name = _get_name(_control_info_types, _ES32(ci->type));
 	if(name != NULL)
 		fprintf(fp, " Type      %s\n", name);
 	else
-		fprintf(fp, " Type      0x%08X\n", ci->type);
+		fprintf(fp, " Type      0x%08X\n", _ES32(ci->type));
 
-	fprintf(fp, " Size      0x%08X\n", ci->size);
-	fprintf(fp, " Next      [%s]\n", ci->next == 1 ? "TRUE" : "FALSE");
+	fprintf(fp, " Size      0x%08X\n", _ES32(ci->size));
+	fprintf(fp, " Next      [%s]\n", _ES64(ci->next) == 1 ? "TRUE" : "FALSE");
 
-	switch(ci->type)
+	switch(_ES32(ci->type))
 	{
 	case CONTROL_INFO_TYPE_FLAGS:
-		_hexdump(fp, " Flags", 0, (u8 *)ci + sizeof(control_info_t), ci->size - sizeof(control_info_t), FALSE);
+		_hexdump(fp, " Flags", 0, (u8 *)ci + sizeof(control_info_t), _ES32(ci->size) - sizeof(control_info_t), FALSE);
 		break;
 	case CONTROL_INFO_TYPE_DIGEST:
-		if(ci->size == 0x30)
+		if(_ES32(ci->size) == 0x30)
 		{
 			ci_data_digest_30_t *dig = (ci_data_digest_30_t *)((u8 *)ci + sizeof(control_info_t));
 			_hexdump(fp, " Digest", 0, dig->digest, 20, FALSE);
 		}
-		else if(ci->size == 0x40)
+		else if(_ES32(ci->size) == 0x40)
 		{
 			ci_data_digest_40_t *dig = (ci_data_digest_40_t *)((u8 *)ci + sizeof(control_info_t));
 			_es_ci_data_digest_40(dig);
@@ -158,16 +158,16 @@ void _print_control_info(FILE *fp, control_info_t *ci)
 			ci_data_npdrm_t *np = (ci_data_npdrm_t *)((u8 *)ci + sizeof(control_info_t));
 			//Was already fixed in decrypt_header.
 			//_es_ci_data_npdrm(np);
-			fprintf(fp, " Magic        0x%08X [%s]\n", np->magic, (np->magic == NP_CI_MAGIC ? "OK" : "ERROR"));
-			fprintf(fp, " unknown_0    0x%08X\n", np->unknown_0);
-			fprintf(fp, " Licence Type 0x%08X\n", np->license_type);
-			fprintf(fp, " App Type     0x%08X\n", np->app_type);
+			fprintf(fp, " Magic        0x%08X [%s]\n", _ES32(np->magic), (_ES32(np->magic) == NP_CI_MAGIC ? "OK" : "ERROR"));
+			fprintf(fp, " unknown_0    0x%08X\n", _ES32(np->unknown_0));
+			fprintf(fp, " Licence Type 0x%08X\n", _ES32(np->license_type));
+			fprintf(fp, " App Type     0x%08X\n", _ES32(np->app_type));
 			fprintf(fp, " ContentID    %s\n", np->content_id);
 			_hexdump(fp, " Random Pad  ", 0, np->rndpad, 0x10, FALSE);
 			_hexdump(fp, " CID_FN Hash ", 0, np->hash_cid_fname, 0x10, FALSE);
 			_hexdump(fp, " CI Hash     ", 0, np->hash_ci, 0x10, FALSE);
-			fprintf(fp, " unknown_1    0x%016llX\n", np->unknown_1);
-			fprintf(fp, " unknown_2    0x%016llX\n", np->unknown_2);
+			fprintf(fp, " unknown_1    0x%016llX\n", _ES64(np->unknown_1));
+			fprintf(fp, " unknown_2    0x%016llX\n", _ES64(np->unknown_2));
 		}
 		break;
 	}
@@ -197,16 +197,16 @@ void _print_opt_header(FILE *fp, opt_header_t *oh)
 
 	fprintf(fp, "[*] Optional Header\n");
 
-	name = _get_name(_optional_header_types, oh->type);
+	name = _get_name(_optional_header_types, _ES32(oh->type));
 	if(name != NULL)
 		fprintf(fp, " Type      %s\n", name);
 	else
-		fprintf(fp, " Type      0x%08X\n", oh->type);
+		fprintf(fp, " Type      0x%08X\n", _ES32(oh->type));
 
-	fprintf(fp, " Size      0x%08X\n", oh->size);
-	fprintf(fp, " Next      [%s]\n", oh->next == 1 ? "TRUE" : "FALSE");
+	fprintf(fp, " Size      0x%08X\n", _ES32(oh->size));
+	fprintf(fp, " Next      [%s]\n", _ES64(oh->next) == 1 ? "TRUE" : "FALSE");
 
-	switch(oh->type)
+	switch(_ES32(oh->type))
 	{
 	case OPT_HEADER_TYPE_CAP_FLAGS:
 		{
@@ -231,7 +231,7 @@ void _print_opt_header(FILE *fp, opt_header_t *oh)
 	case OPT_HEADER_TYPE_INDIV_SEED:
 		{
 			u8 *is = (u8 *)oh + sizeof(opt_header_t);
-			_hexdump(fp, " Seed", 0, is, oh->size - sizeof(opt_header_t), TRUE);
+			_hexdump(fp, " Seed", 0, is, _ES32(oh->size) - sizeof(opt_header_t), TRUE);
 		}
 		break;
 #endif
@@ -404,7 +404,7 @@ BOOL self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 	const u8 *eident;
 
 	//Check for SELF.
-	if(ctxt->sceh->header_type != SCE_HEADER_TYPE_SELF)
+	if(_ES16(ctxt->sceh->header_type) != SCE_HEADER_TYPE_SELF)
 		return FALSE;
 
 	//Print SELF infos.
@@ -424,7 +424,7 @@ BOOL self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 		LIST_FOREACH(iter, ctxt->self.ohs)
 		{
 #ifndef CONFIG_DUMP_INDIV_SEED
-			if(((opt_header_t *)iter->value)->type != OPT_HEADER_TYPE_INDIV_SEED)
+			if(_ES32(((opt_header_t *)iter->value)->type) != OPT_HEADER_TYPE_INDIV_SEED)
 				_print_opt_header(fp, (opt_header_t *)iter->value);
 #else
 			_print_opt_header(fp, (opt_header_t *)iter->value);
@@ -432,14 +432,14 @@ BOOL self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 		}
 	}
 
-	self_type = ctxt->self.ai->self_type;
-	eident = ctxt->scebuffer + ctxt->self.selfh->elf_offset;
+	self_type = _ES32(ctxt->self.ai->self_type);
+	eident = ctxt->scebuffer + _ES64(ctxt->self.selfh->elf_offset);
 
 	//SPU is 32 bit.
 	if(self_type == SELF_TYPE_LDR || self_type == SELF_TYPE_ISO || eident[EI_CLASS] == ELFCLASS32)
 	{
 		//32 bit ELF.
-		Elf32_Ehdr *eh = (Elf32_Ehdr *)(ctxt->scebuffer + ctxt->self.selfh->elf_offset);
+		Elf32_Ehdr *eh = (Elf32_Ehdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->elf_offset));
 		_es_elf32_ehdr(eh);
 
 		//Print section infos.
@@ -453,7 +453,7 @@ BOOL self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 		//Print ELF header.
 		_print_elf32_ehdr(fp, eh);
 
-		Elf32_Phdr *ph = (Elf32_Phdr *)(ctxt->scebuffer + ctxt->self.selfh->phdr_offset);
+		Elf32_Phdr *ph = (Elf32_Phdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->phdr_offset));
 
 		//Print program headers.
 		_print_elf32_phdr_header(fp);
@@ -465,7 +465,7 @@ BOOL self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 
 		if(eh->e_shnum > 0)
 		{
-			Elf32_Shdr *sh = (Elf32_Shdr *)(ctxt->scebuffer + ctxt->self.selfh->shdr_offset);
+			Elf32_Shdr *sh = (Elf32_Shdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->shdr_offset));
 
 			//Print section headers.
 			_print_elf32_shdr_header(fp);
@@ -479,7 +479,7 @@ BOOL self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 	else
 	{
 		//64 bit ELF.
-		Elf64_Ehdr *eh = (Elf64_Ehdr *)(ctxt->scebuffer + ctxt->self.selfh->elf_offset);
+		Elf64_Ehdr *eh = (Elf64_Ehdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->elf_offset));
 		_es_elf64_ehdr(eh);
 
 		//Print section infos.
@@ -493,7 +493,7 @@ BOOL self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 		//Print ELF header.
 		_print_elf64_ehdr(stdout, eh);
 
-		Elf64_Phdr *ph = (Elf64_Phdr *)(ctxt->scebuffer + ctxt->self.selfh->phdr_offset);
+		Elf64_Phdr *ph = (Elf64_Phdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->phdr_offset));
 
 		//Print program headers.
 		_print_elf64_phdr_header(fp);
@@ -505,7 +505,7 @@ BOOL self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 
 		if(eh->e_shnum > 0)
 		{
-			Elf64_Shdr *sh = (Elf64_Shdr *)(ctxt->scebuffer + ctxt->self.selfh->shdr_offset);
+			Elf64_Shdr *sh = (Elf64_Shdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->shdr_offset));
 
 			//Print section headers.
 			_print_elf64_shdr_header(fp);
@@ -529,14 +529,14 @@ BOOL self_write_to_elf(sce_buffer_ctxt_t *ctxt, const s8 *elf_out)
 	const u8 *eident;
 
 	//Check for SELF.
-	if(ctxt->sceh->header_type != SCE_HEADER_TYPE_SELF)
+	if(_ES16(ctxt->sceh->header_type) != SCE_HEADER_TYPE_SELF)
 		return FALSE;
 
 	if((fp = fopen(elf_out, "wb")) == NULL)
 		return FALSE;
 
-	self_type = ctxt->self.ai->self_type;
-	eident = ctxt->scebuffer + ctxt->self.selfh->elf_offset;
+	self_type = _ES32(ctxt->self.ai->self_type);
+	eident = ctxt->scebuffer + _ES64(ctxt->self.selfh->elf_offset);
 
 	//SPU is 32 bit.
 	if(self_type == SELF_TYPE_LDR || self_type == SELF_TYPE_ISO || eident[EI_CLASS] == ELFCLASS32)
@@ -557,32 +557,32 @@ BOOL self_write_to_elf(sce_buffer_ctxt_t *ctxt, const s8 *elf_out)
 #endif
 
 		//32 bit ELF.
-		Elf32_Ehdr ceh, *eh = (Elf32_Ehdr *)(ctxt->scebuffer + ctxt->self.selfh->elf_offset);
+		Elf32_Ehdr ceh, *eh = (Elf32_Ehdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->elf_offset));
 		_copy_es_elf32_ehdr(&ceh, eh);
 
 		//Write ELF header.
 		fwrite(eh, sizeof(Elf32_Ehdr), 1, fp);
 
 		//Write program headers.
-		Elf32_Phdr *ph = (Elf32_Phdr *)(ctxt->scebuffer + ctxt->self.selfh->phdr_offset);
+		Elf32_Phdr *ph = (Elf32_Phdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->phdr_offset));
 		fwrite(ph, sizeof(Elf32_Phdr), ceh.e_phnum, fp);
 
 		//Write program data.
 		metadata_section_header_t *msh = ctxt->metash;
-		for(i = 0; i < ctxt->metah->section_count; i++)
+		for(i = 0; i < _ES32(ctxt->metah->section_count); i++)
 		{
-			if(msh[i].type == METADATA_SECTION_TYPE_PHDR)
+			if(_ES32(msh[i].type) == METADATA_SECTION_TYPE_PHDR)
 			{
-				_es_elf32_phdr(&ph[msh[i].index]);
-				fseek(fp, ph[msh[i].index].p_offset, SEEK_SET);
-				fwrite(ctxt->scebuffer + msh[i].data_offset, sizeof(u8), msh[i].data_size, fp);
+				_es_elf32_phdr(&ph[_ES32(msh[i].index)]);
+				fseek(fp, ph[_ES32(msh[i].index)].p_offset, SEEK_SET);
+				fwrite(ctxt->scebuffer + _ES64(msh[i].data_offset), sizeof(u8), _ES64(msh[i].data_size), fp);
 			}
 		}		
 
 		//Write section headers.
-		if(ctxt->self.selfh->shdr_offset != 0)
+		if(_ES64(ctxt->self.selfh->shdr_offset) != 0)
 		{
-			Elf32_Shdr *sh = (Elf32_Shdr *)(ctxt->scebuffer + ctxt->self.selfh->shdr_offset);
+			Elf32_Shdr *sh = (Elf32_Shdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->shdr_offset));
 			fseek(fp, ceh.e_shoff, SEEK_SET);
 			fwrite(sh, sizeof(Elf32_Shdr), ceh.e_shnum, fp);
 		}
@@ -590,46 +590,46 @@ BOOL self_write_to_elf(sce_buffer_ctxt_t *ctxt, const s8 *elf_out)
 	else
 	{
 		//64 bit ELF.
-		Elf64_Ehdr ceh, *eh = (Elf64_Ehdr *)(ctxt->scebuffer + ctxt->self.selfh->elf_offset);
+		Elf64_Ehdr ceh, *eh = (Elf64_Ehdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->elf_offset));
 		_copy_es_elf64_ehdr(&ceh, eh);
 
 		//Write ELF header.
 		fwrite(eh, sizeof(Elf64_Ehdr), 1, fp);
 
 		//Write program headers.
-		Elf64_Phdr *ph = (Elf64_Phdr *)(ctxt->scebuffer + ctxt->self.selfh->phdr_offset);
+		Elf64_Phdr *ph = (Elf64_Phdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->phdr_offset));
 		fwrite(ph, sizeof(Elf64_Phdr), ceh.e_phnum, fp);
 
 		//Write program data.
 		metadata_section_header_t *msh = ctxt->metash;
-		for(i = 0; i < ctxt->metah->section_count; i++)
+		for(i = 0; i < _ES32(ctxt->metah->section_count); i++)
 		{
-			if(msh[i].type == METADATA_SECTION_TYPE_PHDR)
+			if(_ES32(msh[i].type) == METADATA_SECTION_TYPE_PHDR)
 			{
-				if(msh[i].compressed == METADATA_SECTION_COMPRESSED)
+				if(_ES32(msh[i].compressed) == METADATA_SECTION_COMPRESSED)
 				{
-					_es_elf64_phdr(&ph[msh[i].index]);
-					u8 *data = (u8 *)malloc(ph[msh[i].index].p_filesz);
+					_es_elf64_phdr(&ph[_ES32(msh[i].index)]);
+					u8 *data = (u8 *)malloc(ph[_ES32(msh[i].index)].p_filesz);
 
-					_zlib_inflate(ctxt->scebuffer + msh[i].data_offset, msh[i].data_size, data, ph[msh[i].index].p_filesz);
-					fseek(fp, ph[msh[i].index].p_offset, SEEK_SET);
-					fwrite(data, sizeof(u8), ph[msh[i].index].p_filesz, fp);
+					_zlib_inflate(ctxt->scebuffer + _ES64(msh[i].data_offset), _ES64(msh[i].data_size), data, ph[_ES32(msh[i].index)].p_filesz);
+					fseek(fp, ph[_ES32(msh[i].index)].p_offset, SEEK_SET);
+					fwrite(data, sizeof(u8), ph[_ES32(msh[i].index)].p_filesz, fp);
 
 					free(data);
 				}
 				else
 				{
-					_es_elf64_phdr(&ph[msh[i].index]);
-					fseek(fp, ph[msh[i].index].p_offset, SEEK_SET);
-					fwrite(ctxt->scebuffer + msh[i].data_offset, sizeof(u8), msh[i].data_size, fp);
+					_es_elf64_phdr(&ph[_ES32(msh[i].index)]);
+					fseek(fp, ph[_ES32(msh[i].index)].p_offset, SEEK_SET);
+					fwrite(ctxt->scebuffer + _ES64(msh[i].data_offset), sizeof(u8), _ES64(msh[i].data_size), fp);
 				}
 			}
 		}		
 
 		//Write section headers.
-		if(ctxt->self.selfh->shdr_offset != 0)
+		if(_ES64(ctxt->self.selfh->shdr_offset) != 0)
 		{
-			Elf64_Shdr *sh = (Elf64_Shdr *)(ctxt->scebuffer + ctxt->self.selfh->shdr_offset);
+			Elf64_Shdr *sh = (Elf64_Shdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->shdr_offset));
 			fseek(fp, ceh.e_shoff, SEEK_SET);
 			fwrite(sh, sizeof(Elf64_Shdr), ceh.e_shnum, fp);
 		}
@@ -656,7 +656,7 @@ static u8 _static_control_digest[0x14] =
 static BOOL _create_control_infos(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 {
 	control_info_t *ci;
-	u32 self_type = ctxt->self.ai->self_type;
+	u32 self_type = _ES32(ctxt->self.ai->self_type);
 
 	//Step 1.
 	switch(self_type)
@@ -671,9 +671,9 @@ static BOOL _create_control_infos(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 		{
 			//Add control flags.
 			ci = (control_info_t *)malloc(sizeof(control_info_t) + sizeof(ci_data_flags_t));
-			ci->type = CONTROL_INFO_TYPE_FLAGS;
-			ci->size = sizeof(control_info_t) + sizeof(ci_data_flags_t);
-			ci->next = 1;
+			ci->type = _ES32(CONTROL_INFO_TYPE_FLAGS);
+			ci->size = _ES32(sizeof(control_info_t) + sizeof(ci_data_flags_t));
+			ci->next = _ES64(1);
 
 			ci_data_flags_t *cif = (ci_data_flags_t *)((u8 *)ci + sizeof(control_info_t));
 
@@ -701,12 +701,12 @@ static BOOL _create_control_infos(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 		{
 			//Add digest 0x40.
 			ci = (control_info_t *)malloc(sizeof(control_info_t) + sizeof(ci_data_digest_40_t));
-			ci->type = CONTROL_INFO_TYPE_DIGEST;
-			ci->size = sizeof(control_info_t) + sizeof(ci_data_digest_40_t);
+			ci->type = _ES32(CONTROL_INFO_TYPE_DIGEST);
+			ci->size = _ES32(sizeof(control_info_t) + sizeof(ci_data_digest_40_t));
 			if(self_type == SELF_TYPE_NPDRM)
-				ci->next = 1;
+				ci->next = _ES64(1);
 			else
-				ci->next = 0;
+				ci->next = _ES64(0);
 
 			ci_data_digest_40_t *cid = (ci_data_digest_40_t *)((u8 *)ci + sizeof(control_info_t));
 			memcpy(cid->digest1, _static_control_digest, 0x14);
@@ -737,9 +737,9 @@ static BOOL _create_control_infos(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 				return FALSE;
 
 			ci = (control_info_t *)malloc(sizeof(control_info_t) + sizeof(ci_data_npdrm_t));
-			ci->type = CONTROL_INFO_TYPE_NPDRM;
-			ci->size = sizeof(control_info_t) + sizeof(ci_data_npdrm_t);
-			ci->next = 0;
+			ci->type = _ES32(CONTROL_INFO_TYPE_NPDRM);
+			ci->size = _ES32(sizeof(control_info_t) + sizeof(ci_data_npdrm_t));
+			ci->next = _ES64(0);
 
 			ci_data_npdrm_t *cinp = (ci_data_npdrm_t *)((u8 *)ci + sizeof(control_info_t));
 
@@ -798,7 +798,7 @@ static void _set_cap_flags(u32 self_type, oh_data_cap_flags_t *capf)
 static BOOL _create_optional_headers(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 {
 	opt_header_t *oh;
-	u32 self_type = ctxt->self.ai->self_type;
+	u32 self_type = _ES32(ctxt->self.ai->self_type);
 
 	//Step 1.
 	switch(self_type)
@@ -813,12 +813,12 @@ static BOOL _create_optional_headers(sce_buffer_ctxt_t *ctxt, self_config_t *sco
 		{
 			//Add capability flags.
 			oh = (opt_header_t *)malloc(sizeof(opt_header_t) + sizeof(oh_data_cap_flags_t));
-			oh->type = OPT_HEADER_TYPE_CAP_FLAGS;
-			oh->size = sizeof(opt_header_t) + sizeof(oh_data_cap_flags_t);
+			oh->type = _ES32(OPT_HEADER_TYPE_CAP_FLAGS);
+			oh->size = _ES32(sizeof(opt_header_t) + sizeof(oh_data_cap_flags_t));
 			if(self_type == SELF_TYPE_ISO)
-				oh->next = 1;
+				oh->next = _ES64(1);
 			else
-				oh->next = 0;
+				oh->next = _ES64(0);
 
 			oh_data_cap_flags_t *capf = (oh_data_cap_flags_t *)((u8 *)oh + sizeof(opt_header_t));
 
@@ -840,9 +840,9 @@ static BOOL _create_optional_headers(sce_buffer_ctxt_t *ctxt, self_config_t *sco
 		{
 			//Add individuals seed.
 			oh = (opt_header_t *)malloc(sizeof(opt_header_t) + 0x100);
-			oh->type = OPT_HEADER_TYPE_INDIV_SEED;
-			oh->size = sizeof(opt_header_t) + 0x100;
-			oh->next = 0;
+			oh->type = _ES32(OPT_HEADER_TYPE_INDIV_SEED);
+			oh->size = _ES32(sizeof(opt_header_t) + 0x100);
+			oh->next = _ES64(0);
 
 			u8 *is = (u8 *)oh + sizeof(opt_header_t);
 			memset(is, 0, 0x100);
@@ -861,10 +861,10 @@ static BOOL _create_optional_headers(sce_buffer_ctxt_t *ctxt, self_config_t *sco
 
 static void _fill_sce_version(sce_buffer_ctxt_t *ctxt)
 {
-	ctxt->self.sv->header_type = SUB_HEADER_TYPE_SCEVERSION;
-	ctxt->self.sv->present = SCE_VERSION_NOT_PRESENT;
-	ctxt->self.sv->size = sizeof(sce_version_t);
-	ctxt->self.sv->unknown_3 = 0x00000000;
+	ctxt->self.sv->header_type = _ES32(SUB_HEADER_TYPE_SCEVERSION);
+	ctxt->self.sv->present = _ES32(SCE_VERSION_NOT_PRESENT);
+	ctxt->self.sv->size = _ES32(sizeof(sce_version_t));
+	ctxt->self.sv->unknown_3 = _ES32(0x00000000);
 }
 
 static void _add_phdr_section(sce_buffer_ctxt_t *ctxt, u32 p_type, u32 size, u32 idx)
@@ -957,7 +957,7 @@ static BOOL _build_self_32(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 			i++;
 
 	//Metadata.
-	ctxt->metah->section_count = i;
+	ctxt->metah->section_count = _ES32(i);
 
 	return TRUE;
 }
@@ -1036,7 +1036,7 @@ static BOOL _build_self_64(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 
 	//Metadata.
 	i -= skip;
-	ctxt->metah->section_count = i;
+	ctxt->metah->section_count = _ES32(i);
 
 	return TRUE;
 }
@@ -1046,11 +1046,11 @@ BOOL self_build_self(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 	//const u8 *eident;
 
 	//Fill config values.
-	ctxt->sceh->key_revision = sconf->key_revision;
-	ctxt->self.ai->auth_id = sconf->auth_id;
-	ctxt->self.ai->vendor_id = sconf->vendor_id;
-	ctxt->self.ai->self_type = sconf->self_type;
-	ctxt->self.ai->version = sconf->app_version;
+	ctxt->sceh->key_revision = _ES16(sconf->key_revision);
+	ctxt->self.ai->auth_id = _ES64(sconf->auth_id);
+	ctxt->self.ai->vendor_id = _ES32(sconf->vendor_id);
+	ctxt->self.ai->self_type = _ES32(sconf->self_type);
+	ctxt->self.ai->version = _ES64(sconf->app_version);
 
 	//Create control infos.
 	if(_create_control_infos(ctxt, sconf) == FALSE)

@@ -74,15 +74,15 @@ static BOOL _fill_self_config_template(s8 *file, self_config_t *sconf)
 				_LOG_VERBOSE("Template header decrypted.\n");
 
 				_LOG_VERBOSE("Using:\n");
-				sconf->key_revision = ctxt->sceh->key_revision;
+				sconf->key_revision = _ES16(ctxt->sceh->key_revision);
 				_IF_VERBOSE(printf(" Key Revision 0x%04X\n", sconf->key_revision));
-				sconf->auth_id = ctxt->self.ai->auth_id;
+				sconf->auth_id = _ES64(ctxt->self.ai->auth_id);
 				_IF_VERBOSE(printf(" Auth-ID      0x%016llX\n", sconf->auth_id));
-				sconf->vendor_id = ctxt->self.ai->vendor_id;
+				sconf->vendor_id = _ES32(ctxt->self.ai->vendor_id);
 				_IF_VERBOSE(printf(" Vendor-ID    0x%08X\n", sconf->vendor_id));
-				sconf->self_type = ctxt->self.ai->self_type;
+				sconf->self_type = _ES32(ctxt->self.ai->self_type);
 				_IF_VERBOSE(printf(" SELF-Type    0x%08X\n", sconf->self_type));
-				sconf->app_version = ctxt->self.ai->version;
+				sconf->app_version = _ES64(ctxt->self.ai->version);
 				_IF_VERBOSE(printf(" APP Version  0x%016llX\n", sconf->app_version));
 
 				control_info_t *ci = sce_get_ctrl_info(ctxt, CONTROL_INFO_TYPE_DIGEST);
@@ -102,11 +102,11 @@ static BOOL _fill_self_config_template(s8 *file, self_config_t *sconf)
 
 #ifdef CONFIG_CUSTOM_INDIV_SEED
 				sconf->indiv_seed = NULL;
-				if(ctxt->self.ai->self_type == SELF_TYPE_ISO)
+				if(_ES32(ctxt->self.ai->self_type) == SELF_TYPE_ISO)
 				{
 					oh = sce_get_opt_header(ctxt, OPT_HEADER_TYPE_INDIV_SEED);
-					sconf->indiv_seed = (u8 *)_memdup(((u8 *)oh) + sizeof(opt_header_t), oh->size - sizeof(opt_header_t));
-					sconf->indiv_seed_size = oh->size - sizeof(opt_header_t);
+					sconf->indiv_seed = (u8 *)_memdup(((u8 *)oh) + sizeof(opt_header_t), _ES32(oh->size) - sizeof(opt_header_t));
+					sconf->indiv_seed_size = _ES32(oh->size) - sizeof(opt_header_t);
 					_IF_VERBOSE(_hexdump(stdout, " Individuals Seed", 0, sconf->indiv_seed, sconf->indiv_seed_size, 0));
 				}
 #endif
@@ -334,12 +334,12 @@ void frontend_print_infos(s8 *file)
 			}
 			else
 				printf("[*] Warning: Could not decrypt header.\n");
-			sce_print_info(stdout, ctxt);
-			if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SELF)
+			sce_print_info(stdout, ctxt, keyset);
+			if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF)
 				self_print_info(stdout, ctxt);
-			else if(ctxt->sceh->header_type == SCE_HEADER_TYPE_RVK && ctxt->mdec == TRUE)
+			else if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_RVK && ctxt->mdec == TRUE)
 				rvk_print(stdout, ctxt);
-			else if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SPP && ctxt->mdec == TRUE)
+			else if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SPP && ctxt->mdec == TRUE)
 				spp_print(stdout, ctxt);
 			free(ctxt);
 		}
@@ -387,34 +387,34 @@ void frontend_decrypt(s8 *file_in, s8 *file_out)
 				if(sce_decrypt_data(ctxt))
 				{
 					_LOG_VERBOSE("Data decrypted.\n");
-					if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SELF)
+					if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF)
 					{
 						if(self_write_to_elf(ctxt, file_out) == TRUE)
 							printf("[*] ELF written to %s.\n", file_out);
 						else
 							printf("[*] Error: Could not write ELF.\n");
 					}
-					else if(ctxt->sceh->header_type == SCE_HEADER_TYPE_RVK)
+					else if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_RVK)
 					{
-						if(_write_buffer(file_out, ctxt->scebuffer + ctxt->metash[0].data_offset, 
-							ctxt->metash[0].data_size + ctxt->metash[1].data_size))
+						if(_write_buffer(file_out, ctxt->scebuffer + _ES64(ctxt->metash[0].data_offset), 
+							_ES64(ctxt->metash[0].data_size) + _ES64(ctxt->metash[1].data_size)))
 							printf("[*] RVK written to %s.\n", file_out);
 						else
 							printf("[*] Error: Could not write RVK.\n");
 					}
-					else if(ctxt->sceh->header_type == SCE_HEADER_TYPE_PKG)
+					else if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_PKG)
 					{
-						/*if(_write_buffer(file_out, ctxt->scebuffer + ctxt->metash[0].data_offset, 
-							ctxt->metash[0].data_size + ctxt->metash[1].data_size + ctxt->metash[2].data_size))
+						/*if(_write_buffer(file_out, ctxt->scebuffer + _ES64(ctxt->metash[0].data_offset), 
+							_ES64(ctxt->metash[0].data_size) + _ES64(ctxt->metash[1].data_size) + _ES64(ctxt->metash[2].data_size)))
 							printf("[*] PKG written to %s.\n", file_out);
 						else
 							printf("[*] Error: Could not write PKG.\n");*/
 						printf("soon...\n");
 					}
-					else if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SPP)
+					else if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SPP)
 					{
-						if(_write_buffer(file_out, ctxt->scebuffer + ctxt->metash[0].data_offset, 
-							ctxt->metash[0].data_size + ctxt->metash[1].data_size))
+						if(_write_buffer(file_out, ctxt->scebuffer + _ES64(ctxt->metash[0].data_offset), 
+							_ES64(ctxt->metash[0].data_size) + _ES64(ctxt->metash[1].data_size)))
 							printf("[*] SPP written to %s.\n", file_out);
 						else
 							printf("[*] Error: Could not write SPP.\n");

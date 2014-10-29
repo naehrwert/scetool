@@ -29,23 +29,23 @@ void _print_sce_header(FILE *fp, sce_header_t *h)
 	const s8 *key_revision;
 
 	fprintf(fp, "[*] SCE Header:\n");
-	fprintf(fp, " Magic           0x%08X [%s]\n", h->magic, (h->magic == SCE_HEADER_MAGIC ? "OK" : "ERROR"));
-	fprintf(fp, " Version         0x%08X\n", h->version);
+	fprintf(fp, " Magic           0x%08X [%s]\n", _ES32(h->magic), (_ES32(h->magic) == SCE_HEADER_MAGIC ? "OK" : "ERROR"));
+	fprintf(fp, " Version         0x%08X\n", _ES32(h->version));
 	
-	if(h->key_revision == KEY_REVISION_DEBUG)
+	if(_ES16(h->key_revision) == KEY_REVISION_DEBUG)
 		fprintf(fp, " Key Revision    [DEBUG]\n");
 	else
-		fprintf(fp, " Key Revision    0x%04X\n", h->key_revision);
+		fprintf(fp, " Key Revision    0x%04X\n", _ES16(h->key_revision));
 	
-	name = _get_name(_sce_header_types, h->header_type);
+	name = _get_name(_sce_header_types, _ES16(h->header_type));
 	if(name != NULL)
 		fprintf(fp, " Header Type     [%s]\n", name);
 	else
-		fprintf(fp, " Header Type     0x%04X\n", h->header_type);
+		fprintf(fp, " Header Type     0x%04X\n", _ES16(h->header_type));
 
-	fprintf(fp, " Metadata Offset 0x%08X\n", h->metadata_offset);
-	fprintf(fp, " Header Length   0x%016llX\n", h->header_len);
-	fprintf(fp, " Data Length     0x%016llX\n", h->data_len);
+	fprintf(fp, " Metadata Offset 0x%08X\n", _ES32(h->metadata_offset));
+	fprintf(fp, " Header Length   0x%016llX\n", _ES64(h->header_len));
+	fprintf(fp, " Data Length     0x%016llX\n", _ES64(h->data_len));
 }
 
 void _print_metadata_info(FILE *fp, metadata_info_t *mi)
@@ -58,13 +58,13 @@ void _print_metadata_info(FILE *fp, metadata_info_t *mi)
 void _print_metadata_header(FILE *fp, metadata_header_t *mh)
 {
 	fprintf(fp, "[*] Metadata Header:\n");
-	fprintf(fp, " Signature Input Length 0x%016llX\n", mh->sig_input_length);
-	fprintf(fp, " unknown_0              0x%08X\n", mh->unknown_0);
-	fprintf(fp, " Section Count          0x%08X\n", mh->section_count);
-	fprintf(fp, " Key Count              0x%08X\n", mh->key_count);
-	fprintf(fp, " Optional Header Size   0x%08X\n", mh->opt_header_size);
-	fprintf(fp, " unknown_1              0x%08X\n", mh->unknown_1);
-	fprintf(fp, " unknown_2              0x%08X\n", mh->unknown_2);
+	fprintf(fp, " Signature Input Length 0x%016llX\n", _ES64(mh->sig_input_length));
+	fprintf(fp, " unknown_0              0x%08X\n", _ES32(mh->unknown_0));
+	fprintf(fp, " Section Count          0x%08X\n", _ES32(mh->section_count));
+	fprintf(fp, " Key Count              0x%08X\n", _ES32(mh->key_count));
+	fprintf(fp, " Optional Header Size   0x%08X\n", _ES32(mh->opt_header_size));
+	fprintf(fp, " unknown_1              0x%08X\n", _ES32(mh->unknown_1));
+	fprintf(fp, " unknown_2              0x%08X\n", _ES32(mh->unknown_2));
 }
 
 static void _print_metadata_section_header_header(FILE *fp)
@@ -76,19 +76,19 @@ static void _print_metadata_section_header_header(FILE *fp)
 void _print_metadata_section_header(FILE *fp, metadata_section_header_t *msh, u32 idx)
 {
 	fprintf(fp, " %03d %08llX %08llX %02X   %02X    ", 
-		idx, msh->data_offset, msh->data_size, msh->type, msh->index);
+		idx, _ES64(msh->data_offset), _ES64(msh->data_size), _ES32(msh->type), _ES32(msh->index));
 
-	if(msh->hashed == METADATA_SECTION_HASHED)
-		fprintf(fp, "[YES]  %02X   ", msh->sha1_index);
+	if(_ES32(msh->hashed) == METADATA_SECTION_HASHED)
+		fprintf(fp, "[YES]  %02X   ", _ES32(msh->sha1_index));
 	else
 		fprintf(fp, "[NO ]  --   ");
 
-	if(msh->encrypted == METADATA_SECTION_ENCRYPTED)
-		fprintf(fp, "[YES]     %02X  %02X ", msh->key_index, msh->iv_index);
+	if(_ES32(msh->encrypted) == METADATA_SECTION_ENCRYPTED)
+		fprintf(fp, "[YES]     %02X  %02X ", _ES32(msh->key_index), _ES32(msh->iv_index));
 	else
 		fprintf(fp, "[NO ]     --  -- ");
 
-	if(msh->compressed == METADATA_SECTION_COMPRESSED)
+	if(_ES32(msh->compressed) == METADATA_SECTION_COMPRESSED)
 		fprintf(fp, "[YES]\n");
 	else
 		fprintf(fp, "[NO ]\n");
@@ -99,14 +99,46 @@ void _print_sce_file_keys(FILE *fp, sce_buffer_ctxt_t *ctxt)
 	u32 i;
 
 	//Get start of keys.
-	u8 *keys = (u8 *)ctxt->metash + sizeof(metadata_section_header_t) * ctxt->metah->section_count;
+	u8 *keys = (u8 *)ctxt->metash + sizeof(metadata_section_header_t) * _ES32(ctxt->metah->section_count);
 
 	fprintf(fp, "[*] SCE File Keys:\n");
-	for(i = 0; i < ctxt->metah->key_count; i++)
+	for(i = 0; i < _ES32(ctxt->metah->key_count); i++)
 	{
 		fprintf(fp, " %02X:", i);
 		_hexdump(fp, "", i, keys+i*0x10, 0x10, FALSE);
 	}
+}
+
+void _print_sce_signature(FILE *fp, signature_t *sig)
+{
+	fprintf(fp, "[*] Signature:\n");
+	_hexdump(fp, " R", 0, sig->r, SIGNATURE_R_SIZE, FALSE);
+	_hexdump(fp, " S", 0, sig->s, SIGNATURE_S_SIZE, FALSE);
+}
+
+void _print_sce_signature_status(FILE *fp, sce_buffer_ctxt_t *ctxt, u8 *keyset)
+{
+	u8 hash[0x14];
+	keyset_t *ks;
+
+	//Check if a keyset is provided.
+	if(keyset == NULL)
+	{
+		//Try to find keyset.
+		ks = keyset_find(ctxt);
+	}
+	else
+	{
+		//Use the provided keyset.
+		ks = keyset_from_buffer(keyset);
+	}
+	//Generate header hash.
+	sha1(ctxt->scebuffer, _ES64(ctxt->metah->sig_input_length), hash);
+
+	//Validate the signature.
+	ecdsa_set_curve(ks->ctype);
+	ecdsa_set_pub(ks->pub);
+	fprintf(fp, "[*] Signature status: %s\n", (ecdsa_verify(hash, ctxt->sig->r, ctxt->sig->s) == TRUE ? "OK" : "FAIL"));
 }
 
 static sce_buffer_ctxt_t *_sce_create_ctxt()
@@ -156,46 +188,41 @@ sce_buffer_ctxt_t *sce_create_ctxt_from_buffer(u8 *scebuffer)
 
 	//Set pointer to SCE header.
 	res->sceh = (sce_header_t *)scebuffer;
-	_es_sce_header(res->sceh);
 
 	//Set pointers to file type specific headers.
-	switch(res->sceh->header_type)
+	switch(_ES16(res->sceh->header_type))
 	{
 		case SCE_HEADER_TYPE_SELF:
 		{
 			//SELF header.
 			res->self.selfh = (self_header_t *)(res->scebuffer + sizeof(sce_header_t));
-			_es_self_header(res->self.selfh);
 
 			//Application info.
-			res->self.ai = (app_info_t *)(res->scebuffer + res->self.selfh->app_info_offset);
-			_es_app_info(res->self.ai);
+			res->self.ai = (app_info_t *)(res->scebuffer + _ES64(res->self.selfh->app_info_offset));
 
 			//Section infos.
-			res->self.si = (section_info_t *)(res->scebuffer + res->self.selfh->section_info_offset);
+			res->self.si = (section_info_t *)(res->scebuffer + _ES64(res->self.selfh->section_info_offset));
 
 			//SCE version.
-			if(res->self.selfh->sce_version_offset != NULL)
+			if(_ES64(res->self.selfh->sce_version_offset) != NULL)
 			{
-				res->self.sv = (sce_version_t *)(res->scebuffer + res->self.selfh->sce_version_offset);
-				_es_sce_version(res->self.sv);
+				res->self.sv = (sce_version_t *)(res->scebuffer + _ES64(res->self.selfh->sce_version_offset));
 			}
 			else
 				res->self.sv = 0;
 
 			//Get pointers to all control infos.
-			u32 len = (u32)res->self.selfh->control_info_size;
+			u32 len = (u32)(_ES64(res->self.selfh->control_info_size));
 			if(len > 0)
 			{
-				u8 *ptr = res->scebuffer + res->self.selfh->control_info_offset;
+				u8 *ptr = res->scebuffer + _ES64(res->self.selfh->control_info_offset);
 				res->self.cis = list_create();
 
 				while(len > 0)
 				{
 					control_info_t *tci = (control_info_t *)ptr;
-					_es_control_info(tci);
-					ptr += tci->size;
-					len -= tci->size;
+					ptr += _ES32(tci->size);
+					len -= _ES32(tci->size);
 					list_add_back(res->self.cis, tci);
 				}
 			}
@@ -219,7 +246,7 @@ sce_buffer_ctxt_t *sce_create_ctxt_from_buffer(u8 *scebuffer)
 	}
 
 	//Set pointers to metadata headers.
-	res->metai = (metadata_info_t *)(scebuffer + sizeof(sce_header_t) + res->sceh->metadata_offset);
+	res->metai = (metadata_info_t *)(scebuffer + sizeof(sce_header_t) + _ES32(res->sceh->metadata_offset));
 	res->metah = (metadata_header_t *)((u8 *)res->metai + sizeof(metadata_info_t));
 	res->metash = (metadata_section_header_t *)((u8 *)res->metah + sizeof(metadata_header_t));
 
@@ -233,14 +260,14 @@ sce_buffer_ctxt_t *sce_create_ctxt_build_self(u8 *elf, u32 elf_len)
 	if((res = _sce_create_ctxt()) == NULL)
 		return NULL;
 
-	res->sceh->magic = SCE_HEADER_MAGIC;
-	res->sceh->version = SCE_HEADER_VERSION_2;
-	res->sceh->header_type = SCE_HEADER_TYPE_SELF;
+	res->sceh->magic = _ES32(SCE_HEADER_MAGIC);
+	res->sceh->version = _ES32(SCE_HEADER_VERSION_2);
+	res->sceh->header_type = _ES16(SCE_HEADER_TYPE_SELF);
 
 	//Allocate SELF header.
 	res->self.selfh = (self_header_t *)malloc(sizeof(self_header_t));
 	memset(res->self.selfh, 0, sizeof(self_header_t));
-	res->self.selfh->header_type = SUB_HEADER_TYPE_SELF;
+	res->self.selfh->header_type = _ES64(SUB_HEADER_TYPE_SELF);
 	//Allocate application info.
 	res->self.ai = (app_info_t *)malloc(sizeof(app_info_t));
 	memset(res->self.ai, 0, sizeof(app_info_t));
@@ -275,11 +302,11 @@ void sce_add_data_section(sce_buffer_ctxt_t *ctxt, void *buffer, u32 size, BOOL 
 
 void sce_set_metash(sce_buffer_ctxt_t *ctxt, u32 type, BOOL encrypted, u32 idx)
 {
-	ctxt->metash[idx].type = type;
-	ctxt->metash[idx].index = (type == METADATA_SECTION_TYPE_PHDR ? idx : type == METADATA_SECTION_TYPE_SHDR ? idx + 1 : idx);
-	ctxt->metash[idx].hashed = METADATA_SECTION_HASHED;
-	ctxt->metash[idx].encrypted = (encrypted == TRUE ? METADATA_SECTION_ENCRYPTED : METADATA_SECTION_NOT_ENCRYPTED);
-	ctxt->metash[idx].compressed = METADATA_SECTION_NOT_COMPRESSED;
+	ctxt->metash[idx].type = _ES32(type);
+	ctxt->metash[idx].index = _ES32(_ES32(type) == METADATA_SECTION_TYPE_PHDR ? idx : _ES32(type) == METADATA_SECTION_TYPE_SHDR ? idx + 1 : idx);
+	ctxt->metash[idx].hashed = _ES32(METADATA_SECTION_HASHED);
+	ctxt->metash[idx].encrypted = _ES32(encrypted == TRUE ? METADATA_SECTION_ENCRYPTED : METADATA_SECTION_NOT_ENCRYPTED);
+	ctxt->metash[idx].compressed = _ES32(METADATA_SECTION_NOT_COMPRESSED);
 }
 
 void sce_compress_data(sce_buffer_ctxt_t *ctxt)
@@ -307,15 +334,15 @@ void sce_compress_data(sce_buffer_ctxt_t *ctxt)
 					sec->size = size_comp;
 
 					//Set compression in section info.
-					if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SELF && i < ctxt->makeself->si_sec_cnt)
+					if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF && i < ctxt->makeself->si_sec_cnt)
 					{
 						ctxt->self.si[i].compressed = SECTION_INFO_COMPRESSED;
 						//Update size too.
 						ctxt->self.si[i].size = size_comp;
 					}
 
-					//Set compression in maetadata section header.
-					ctxt->metash[i].compressed = METADATA_SECTION_COMPRESSED;
+					//Set compression in metadata section header.
+					ctxt->metash[i].compressed = _ES32(METADATA_SECTION_COMPRESSED);
 				}
 				else
 				{
@@ -336,7 +363,7 @@ static u32 _sce_get_ci_len(sce_buffer_ctxt_t *ctxt)
 	u32 res = 0;
 
 	LIST_FOREACH(iter, ctxt->self.cis)
-		res += ((control_info_t *)iter->value)->size;
+		res += _ES32(((control_info_t *)iter->value)->size);
 
 	return res;
 }
@@ -346,7 +373,7 @@ static u32 _sce_get_oh_len(sce_buffer_ctxt_t *ctxt)
 	u32 res = 0;
 
 	LIST_FOREACH(iter, ctxt->self.ohs)
-		res += ((opt_header_t *)iter->value)->size;
+		res += _ES32(((opt_header_t *)iter->value)->size);
 
 	return res;
 }
@@ -356,7 +383,7 @@ void _sce_fixup_ctxt(sce_buffer_ctxt_t *ctxt)
 	u32 i = 0, base_off, last_off;
 
 	//Set section info data.
-	base_off = ctxt->sceh->header_len;
+	base_off = _ES64(ctxt->sceh->header_len);
 	LIST_FOREACH(iter, ctxt->secs)
 	{
 		//Save last offset.
@@ -367,52 +394,52 @@ void _sce_fixup_ctxt(sce_buffer_ctxt_t *ctxt)
 		sec->offset = base_off;
 
 		//Section infos for SELF (that are present as data sections).
-		if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SELF && i < ctxt->makeself->si_sec_cnt)
+		if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF && i < ctxt->makeself->si_sec_cnt)
 		//{
 			ctxt->self.si[i].offset = base_off;
 		//	ctxt->self.si[i].size = sec->size;
 		//}
 
 		//Metadata section headers.
-		ctxt->metash[i].data_offset = base_off;
-		ctxt->metash[i].data_size = sec->size;
+		ctxt->metash[i].data_offset = _ES64(base_off);
+		ctxt->metash[i].data_size = _ES64(sec->size);
 
 		//Update offset and data length.
 		base_off += sec->size;
-		ctxt->sceh->data_len = base_off - ctxt->sceh->header_len;
+		ctxt->sceh->data_len = _ES64(base_off - _ES64(ctxt->sceh->header_len));
 		base_off = ALIGN(base_off, SCE_ALIGN);
 
 		i++;
 	}
 
 	//Set metadata offset (counted from after SCE header).
-	ctxt->sceh->metadata_offset = ctxt->off_metai - sizeof(sce_header_t);
+	ctxt->sceh->metadata_offset = _ES32(ctxt->off_metai - sizeof(sce_header_t));
 
 	//Set metadata header values.
-	ctxt->metah->sig_input_length = ctxt->off_sig;
-	ctxt->metah->unknown_0 = 1;
-	ctxt->metah->opt_header_size = _sce_get_oh_len(ctxt);
-	ctxt->metah->unknown_1 = 0;
-	ctxt->metah->unknown_2 = 0;
+	ctxt->metah->sig_input_length = _ES64(ctxt->off_sig);
+	ctxt->metah->unknown_0 = _ES32(1);
+	ctxt->metah->opt_header_size = _ES32(_sce_get_oh_len(ctxt));
+	ctxt->metah->unknown_1 = _ES32(0);
+	ctxt->metah->unknown_2 = _ES32(0);
 
-	switch(ctxt->sceh->header_type)
+	switch(_ES16(ctxt->sceh->header_type))
 	{
 	case SCE_HEADER_TYPE_SELF:
 		{
 			//Set header offsets.
-			ctxt->self.selfh->app_info_offset = ctxt->off_self.off_ai;
-			ctxt->self.selfh->elf_offset = ctxt->off_self.off_ehdr;
-			ctxt->self.selfh->phdr_offset = ctxt->off_self.off_phdr;
-			ctxt->self.selfh->section_info_offset = ctxt->off_self.off_si;
-			ctxt->self.selfh->sce_version_offset = ctxt->off_self.off_sv;
-			ctxt->self.selfh->control_info_offset = ctxt->off_self.off_cis;
-			ctxt->self.selfh->control_info_size = _sce_get_ci_len(ctxt);
+			ctxt->self.selfh->app_info_offset = _ES64(ctxt->off_self.off_ai);
+			ctxt->self.selfh->elf_offset = _ES64(ctxt->off_self.off_ehdr);
+			ctxt->self.selfh->phdr_offset = _ES64(ctxt->off_self.off_phdr);
+			ctxt->self.selfh->section_info_offset = _ES64(ctxt->off_self.off_si);
+			ctxt->self.selfh->sce_version_offset = _ES64(ctxt->off_self.off_sv);
+			ctxt->self.selfh->control_info_offset = _ES64(ctxt->off_self.off_cis);
+			ctxt->self.selfh->control_info_size = _ES64(_sce_get_ci_len(ctxt));
 
 			//Set section headers offset in SELF header (last data section) if available.
 			if(ctxt->makeself->shdrs != NULL)
-				ctxt->self.selfh->shdr_offset = last_off;
+				ctxt->self.selfh->shdr_offset = _ES64(last_off);
 			else
-				ctxt->self.selfh->shdr_offset = 0;
+				ctxt->self.selfh->shdr_offset = _ES64(0);
 		}
 		break;
 	case SCE_HEADER_TYPE_RVK:
@@ -436,24 +463,24 @@ void _sce_fixup_keys(sce_buffer_ctxt_t *ctxt)
 
 	//Build keys array.
 	ctxt->keys_len = 0;
-	ctxt->metah->key_count = 0;
-	for(i = 0; i < ctxt->metah->section_count; i++)
+	ctxt->metah->key_count = _ES32(0);
+	for(i = 0; i < _ES32(ctxt->metah->section_count); i++)
 	{
-		if(ctxt->metash[i].encrypted == METADATA_SECTION_ENCRYPTED)
+		if(_ES32(ctxt->metash[i].encrypted) == METADATA_SECTION_ENCRYPTED)
 		{
 			ctxt->keys_len += 0x80; //0x60 HMAC, 0x20 key/iv
-			ctxt->metah->key_count += 8;
-			ctxt->metash[i].sha1_index = ctxt->metah->key_count - 8;
-			ctxt->metash[i].key_index = ctxt->metah->key_count - 2;
-			ctxt->metash[i].iv_index = ctxt->metah->key_count - 1;
+			ctxt->metah->key_count += _ES32(8);
+			ctxt->metash[i].sha1_index = _ES32(_ES32(ctxt->metah->key_count) - 8);
+			ctxt->metash[i].key_index = _ES32(_ES32(ctxt->metah->key_count) - 2);
+			ctxt->metash[i].iv_index = _ES32(_ES32(ctxt->metah->key_count) - 1);
 		}
 		else
 		{
 			ctxt->keys_len += 0x60; //0x60 HMAC
-			ctxt->metah->key_count += 6;
-			ctxt->metash[i].sha1_index = ctxt->metah->key_count - 6;
-			ctxt->metash[i].key_index = 0xFFFFFFFF;
-			ctxt->metash[i].iv_index = 0xFFFFFFFF;
+			ctxt->metah->key_count += _ES32(6);
+			ctxt->metash[i].sha1_index = _ES32(_ES32(ctxt->metah->key_count) - 6);
+			ctxt->metash[i].key_index = _ES32(0xFFFFFFFF);
+			ctxt->metash[i].iv_index = _ES32(0xFFFFFFFF);
 		}
 	}
 
@@ -495,7 +522,7 @@ void sce_layout_ctxt(sce_buffer_ctxt_t *ctxt)
 	//SCE header.
 	ctxt->off_sceh = _INC_OFF_TYPE(coff, sce_header_t);
 
-	switch(ctxt->sceh->header_type)
+	switch(_ES16(ctxt->sceh->header_type))
 	{
 	case SCE_HEADER_TYPE_SELF:
 		{
@@ -534,13 +561,13 @@ void sce_layout_ctxt(sce_buffer_ctxt_t *ctxt)
 	//Metadata header.
 	ctxt->off_metah = _INC_OFF_TYPE(coff, metadata_header_t);
 	//Metadata section headers.
-	ctxt->off_metash = _INC_OFF_SIZE(coff, ctxt->metah->section_count * sizeof(metadata_section_header_t));
+	ctxt->off_metash = _INC_OFF_SIZE(coff, _ES32(ctxt->metah->section_count) * sizeof(metadata_section_header_t));
 	//Keys.
 	_sce_fixup_keys(ctxt);
 	ctxt->off_keys = _INC_OFF_SIZE(coff, ctxt->keys_len);
 
 	//SELF only headers.
-	if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SELF)
+	if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF)
 	{
 		//Optional headers.
 		ctxt->off_self.off_ohs = _INC_OFF_SIZE(coff, _sce_get_oh_len(ctxt));
@@ -554,7 +581,7 @@ void sce_layout_ctxt(sce_buffer_ctxt_t *ctxt)
 	coff = ALIGN(coff, HEADER_ALIGN);
 	
 	//Set header length.
-	ctxt->sceh->header_len = coff;
+	ctxt->sceh->header_len = _ES64(coff);
 
 	//Set missing values, etc.
 	_sce_fixup_ctxt(ctxt);
@@ -565,21 +592,21 @@ static void _sce_build_header(sce_buffer_ctxt_t *ctxt)
 	u32 i;
 
 	//Allocate header buffer.
-	ctxt->scebuffer = (u8*)malloc(sizeof(u8) * ctxt->sceh->header_len);
-	memset(ctxt->scebuffer, 0, sizeof(u8) * ctxt->sceh->header_len);
+	ctxt->scebuffer = (u8*)malloc(sizeof(u8) * _ES64(ctxt->sceh->header_len));
+	memset(ctxt->scebuffer, 0, sizeof(u8) * _ES64(ctxt->sceh->header_len));
 
 	//SCE header.
-	_copy_es_sce_header((sce_header_t *)(ctxt->scebuffer + ctxt->off_sceh), ctxt->sceh);
+	memcpy((sce_header_t *)(ctxt->scebuffer + ctxt->off_sceh), ctxt->sceh, sizeof(sce_header_t));
 
 	//File type dependent headers.
-	switch(ctxt->sceh->header_type)
+	switch(_ES16(ctxt->sceh->header_type))
 	{
 	case SCE_HEADER_TYPE_SELF:
 		{
 			//SELF header.
-			_copy_es_self_header((self_header_t *)(ctxt->scebuffer + ctxt->off_self.off_selfh), ctxt->self.selfh);
+			memcpy((self_header_t *)(ctxt->scebuffer + ctxt->off_self.off_selfh), ctxt->self.selfh, sizeof(self_header_t));
 			//Application info.
-			_copy_es_app_info((app_info_t *)(ctxt->scebuffer + ctxt->off_self.off_ai), ctxt->self.ai);
+			memcpy((app_info_t *)(ctxt->scebuffer + ctxt->off_self.off_ai), ctxt->self.ai, sizeof(app_info_t));
 			//ELF header.
 			memcpy(ctxt->scebuffer + ctxt->off_self.off_ehdr, ctxt->makeself->ehdr, ctxt->makeself->ehsize);
 			//ELF program headers.
@@ -591,7 +618,7 @@ static void _sce_build_header(sce_buffer_ctxt_t *ctxt)
 				_copy_es_section_info((section_info_t *)(ctxt->scebuffer + ctxt->off_self.off_si + sizeof(section_info_t) * i), &ctxt->self.si[i]);
 
 			//SCE version.
-			_copy_es_sce_version((sce_version_t *)(ctxt->scebuffer + ctxt->off_self.off_sv), ctxt->self.sv);
+			memcpy((sce_version_t *)(ctxt->scebuffer + ctxt->off_self.off_sv), ctxt->self.sv, sizeof(sce_version_t));
 
 			//Control infos.
 			u32 ci_base = ctxt->off_self.off_cis;
@@ -600,11 +627,11 @@ static void _sce_build_header(sce_buffer_ctxt_t *ctxt)
 				control_info_t *ci = (control_info_t *)iter->value;
 
 				//Copy control info header.
-				_copy_es_control_info((control_info_t *)(ctxt->scebuffer + ci_base), ci);
+				memcpy((control_info_t *)(ctxt->scebuffer + ci_base), ci, sizeof(control_info_t));
 				//Copy data.
-				memcpy(ctxt->scebuffer + ci_base + sizeof(control_info_t), ((u8 *)ci) + sizeof(control_info_t), ci->size - sizeof(control_info_t));
+				memcpy(ctxt->scebuffer + ci_base + sizeof(control_info_t), ((u8 *)ci) + sizeof(control_info_t), _ES32(ci->size) - sizeof(control_info_t));
 
-				ci_base += ci->size;
+				ci_base += _ES32(ci->size);
 			}
 		}
 		break;
@@ -625,16 +652,16 @@ static void _sce_build_header(sce_buffer_ctxt_t *ctxt)
 	//Metadata info.
 	memcpy(ctxt->scebuffer + ctxt->off_metai, ctxt->metai, sizeof(metadata_info_t));
 	//Metadata header.
-	_copy_es_metadata_header((metadata_header_t *)(ctxt->scebuffer + ctxt->off_metah), ctxt->metah);
+	memcpy((metadata_header_t *)(ctxt->scebuffer + ctxt->off_metah), ctxt->metah, sizeof(metadata_header_t));
 	//Metadata section headers.
-	for(i = 0; i < ctxt->metah->section_count; i++)
-		_copy_es_metadata_section_header((metadata_section_header_t *)(ctxt->scebuffer + ctxt->off_metash + sizeof(metadata_section_header_t) * i), &ctxt->metash[i]);
+	for(i = 0; i < _ES32(ctxt->metah->section_count); i++)
+		memcpy((metadata_section_header_t *)(ctxt->scebuffer + ctxt->off_metash + sizeof(metadata_section_header_t) * i), &ctxt->metash[i], sizeof(metadata_section_header_t));
 
 	//Keys.
 	//memcpy(ctxt->scebuffer + ctxt->off_keys, ctxt->keys, ctxt->keys_len);
 
 	//SELF only headers.
-	if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SELF)
+	if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF)
 	{
 		//Optional headers.
 		u32 oh_base = ctxt->off_self.off_ohs;
@@ -643,11 +670,11 @@ static void _sce_build_header(sce_buffer_ctxt_t *ctxt)
 			opt_header_t *oh = (opt_header_t *)iter->value;
 
 			//Copy optional header.
-			_copy_es_opt_header((opt_header_t *)(ctxt->scebuffer + oh_base), oh);
+			memcpy((opt_header_t *)(ctxt->scebuffer + oh_base), oh, sizeof(opt_header_t));
 			//Copy data.
-			memcpy(ctxt->scebuffer + oh_base + sizeof(opt_header_t), ((u8 *)oh) + sizeof(opt_header_t), oh->size - sizeof(opt_header_t));
+			memcpy(ctxt->scebuffer + oh_base + sizeof(opt_header_t), ((u8 *)oh) + sizeof(opt_header_t), _ES32(oh->size) - sizeof(opt_header_t));
 
-			oh_base += oh->size;
+			oh_base += _ES32(oh->size);
 		}
 	}
 }
@@ -661,7 +688,7 @@ static BOOL _sce_sign_header(sce_buffer_ctxt_t *ctxt, keyset_t *ks)
 		return FALSE;
 
 	//Generate header hash.
-	sha1(ctxt->scebuffer, ctxt->metah->sig_input_length, hash);
+	sha1(ctxt->scebuffer, _ES64(ctxt->metah->sig_input_length), hash);
 
 	//Generate signature.
 	ecdsa_set_curve(ks->ctype);
@@ -683,7 +710,7 @@ static void _sce_calculate_hashes(sce_buffer_ctxt_t *ctxt)
 	{
 		sce_section_ctxt_t *sec = (sce_section_ctxt_t *)iter->value;
 
-		sha1_idx = ctxt->metash[i].sha1_index;
+		sha1_idx = _ES32(ctxt->metash[i].sha1_index);
 		memset(ctxt->keys + sha1_idx * 0x10, 0, 0x20);
 		sha1_hmac(ctxt->keys + (sha1_idx + 2) * 0x10, 0x40, (u8 *)sec->buffer, sec->size, ctxt->keys + sha1_idx * 0x10);
 
@@ -727,7 +754,7 @@ static BOOL _sce_encrypt_header(sce_buffer_ctxt_t *ctxt, u8 *keyset)
 	aes_setkey_enc(&aes_ctxt, ctxt->metai->key, METADATA_INFO_KEYBITS);
 	memcpy(iv, ctxt->metai->iv, 0x10);
 	aes_crypt_ctr(&aes_ctxt, 
-		ctxt->sceh->header_len - (sizeof(sce_header_t) + ctxt->sceh->metadata_offset + sizeof(metadata_info_t)), 
+		_ES64(ctxt->sceh->header_len) - (sizeof(sce_header_t) + _ES32(ctxt->sceh->metadata_offset) + sizeof(metadata_info_t)), 
 		&nc_off, iv, sblk, ptr, ptr);
 
 	//Encrypt metadata info.
@@ -736,7 +763,7 @@ static BOOL _sce_encrypt_header(sce_buffer_ctxt_t *ctxt, u8 *keyset)
 	aes_crypt_cbc(&aes_ctxt, AES_ENCRYPT, sizeof(metadata_info_t), ks->riv, ptr, ptr);
 
 	//Add NPDRM layer.
-	if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SELF && ctxt->self.ai->self_type == SELF_TYPE_NPDRM)
+	if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF && _ES32(ctxt->self.ai->self_type) == SELF_TYPE_NPDRM)
 		if(np_encrypt_npdrm(ctxt) == FALSE)
 			return FALSE;
 
@@ -756,10 +783,10 @@ static void _sce_encrypt_data(sce_buffer_ctxt_t *ctxt)
 		u8 buf[16];
 		u8 iv[16];
 
-		if(ctxt->metash[i].encrypted == METADATA_SECTION_ENCRYPTED)
+		if(_ES32(ctxt->metash[i].encrypted) == METADATA_SECTION_ENCRYPTED)
 		{
-			memcpy(iv, ctxt->keys + ctxt->metash[i].iv_index * 0x10, 0x10);
-			aes_setkey_enc(&aes_ctxt, ctxt->keys + ctxt->metash[i].key_index * 0x10, 128);
+			memcpy(iv, ctxt->keys + _ES32(ctxt->metash[i].iv_index) * 0x10, 0x10);
+			aes_setkey_enc(&aes_ctxt, ctxt->keys + _ES32(ctxt->metash[i].key_index) * 0x10, 128);
 			aes_crypt_ctr(&aes_ctxt, sec->size, &nc_off, iv, buf, (u8 *)sec->buffer, (u8 *)sec->buffer);
 		}
 
@@ -790,7 +817,7 @@ BOOL sce_write_ctxt(sce_buffer_ctxt_t *ctxt, s8 *fname)
 		return FALSE;
 
 	//Write SCE file header.
-	fwrite(ctxt->scebuffer, sizeof(u8), ctxt->sceh->header_len, fp);
+	fwrite(ctxt->scebuffer, sizeof(u8), _ES64(ctxt->sceh->header_len), fp);
 
 	//Write SCE file sections.
 	LIST_FOREACH(iter, ctxt->secs)
@@ -809,7 +836,7 @@ BOOL sce_decrypt_header(sce_buffer_ctxt_t *ctxt, u8 *metadata_info, u8 *keyset)
 {
 	u32 i;
 	size_t nc_off;
-	u8 sblk[0x10], iv[0x10];
+	u8 sblk[0x10], iv[0x10], ctr_iv[0x10];
 	keyset_t *ks;
 	aes_context aes_ctxt;
 
@@ -832,7 +859,7 @@ BOOL sce_decrypt_header(sce_buffer_ctxt_t *ctxt, u8 *metadata_info, u8 *keyset)
 		}
 
 		//Remove NPDRM layer.
-		if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SELF && ctxt->self.ai->self_type == SELF_TYPE_NPDRM)
+		if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF && _ES32(ctxt->self.ai->self_type) == SELF_TYPE_NPDRM)
 			if(np_decrypt_npdrm(ctxt) == FALSE)
 				return FALSE;
 
@@ -852,43 +879,37 @@ BOOL sce_decrypt_header(sce_buffer_ctxt_t *ctxt, u8 *metadata_info, u8 *keyset)
 
 	//Decrypt metadata header, metadata section headers and keys.
 	nc_off = 0;
+	memcpy (ctr_iv, ctxt->metai->iv ,0x10);
 	aes_setkey_enc(&aes_ctxt, ctxt->metai->key, METADATA_INFO_KEYBITS);
 	aes_crypt_ctr(&aes_ctxt, 
-		ctxt->sceh->header_len - (sizeof(sce_header_t) + ctxt->sceh->metadata_offset + sizeof(metadata_info_t)), 
-		&nc_off, ctxt->metai->iv, sblk, (u8 *)ctxt->metah, (u8 *)ctxt->metah);
-
-	//Fixup headers.
-	_es_metadata_header(ctxt->metah);
-	for(i = 0; i < ctxt->metah->section_count; i++)
-		_es_metadata_section_header(&ctxt->metash[i]);
+		_ES64(ctxt->sceh->header_len) - (sizeof(sce_header_t) + _ES32(ctxt->sceh->metadata_offset) + sizeof(metadata_info_t)), 
+		&nc_off, ctr_iv, sblk, (u8 *)ctxt->metah, (u8 *)ctxt->metah);
 
 	//Metadata decrypted.
 	ctxt->mdec = TRUE;
 
 	//Set start of SCE file keys.
-	ctxt->keys = (u8 *)ctxt->metash + sizeof(metadata_section_header_t) * ctxt->metah->section_count;
-	ctxt->keys_len = ctxt->metah->key_count * 0x10;
+	ctxt->keys = (u8 *)ctxt->metash + sizeof(metadata_section_header_t) * _ES32(ctxt->metah->section_count);
+	ctxt->keys_len = _ES32(ctxt->metah->key_count) * 0x10;
 
 	//Set SELF only headers.
-	if(ctxt->sceh->header_type == SCE_HEADER_TYPE_SELF)
+	if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF)
 	{
 		//Get pointers to all optional headers.
 		ctxt->self.ohs = list_create();
-		opt_header_t *oh = (opt_header_t *)(ctxt->keys + ctxt->metah->key_count * 0x10);
-		_es_opt_header(oh);
+		opt_header_t *oh = (opt_header_t *)(ctxt->keys + _ES32(ctxt->metah->key_count) * 0x10);
 		list_add_back(ctxt->self.ohs, oh);
-		while(oh->next != 0)
+		while(_ES64(oh->next) != 0)
 		{
-			oh = (opt_header_t *)((u8 *)oh + oh->size);
-			_es_opt_header(oh);
+			oh = (opt_header_t *)((u8 *)oh + _ES32(oh->size));
 			list_add_back(ctxt->self.ohs, oh);
 		}
 
 		//Signature.
-		ctxt->sig = (signature_t *)((u8 *)oh + oh->size);
+		ctxt->sig = (signature_t *)((u8 *)oh + _ES32(oh->size));
 	}
 	else
-		ctxt->sig = (signature_t *)(ctxt->keys + ctxt->metah->key_count * 0x10);
+		ctxt->sig = (signature_t *)(ctxt->keys + _ES32(ctxt->metah->key_count) * 0x10);
 
 	return TRUE;
 }
@@ -899,23 +920,23 @@ BOOL sce_decrypt_data(sce_buffer_ctxt_t *ctxt)
 	aes_context aes_ctxt;
 
 	//Decrypt sections.
-	for(i = 0; i < ctxt->metah->section_count; i++)
+	for(i = 0; i < _ES32(ctxt->metah->section_count); i++)
 	{
 		size_t nc_off = 0;
 		u8 buf[16];
 		u8 iv[16];
 
 		//Only decrypt encrypted sections.
-		if(ctxt->metash[i].encrypted == METADATA_SECTION_ENCRYPTED)
+		if(_ES32(ctxt->metash[i].encrypted) == METADATA_SECTION_ENCRYPTED)
 		{
-			if(ctxt->metash[i].key_index > ctxt->metah->key_count - 1 || ctxt->metash[i].iv_index > ctxt->metah->key_count)
+			if(_ES32(ctxt->metash[i].key_index) > _ES32(ctxt->metah->key_count) - 1 || _ES32(ctxt->metash[i].iv_index) > _ES32(ctxt->metah->key_count))
 				printf("[*] Warning: Skipped decryption of section %03d (marked encrypted but key/iv index out of range)\n", i);
 			else
 			{
-				memcpy(iv, ctxt->keys + ctxt->metash[i].iv_index * 0x10, 0x10);
-				aes_setkey_enc(&aes_ctxt, ctxt->keys + ctxt->metash[i].key_index * 0x10, 128);
-				u8 *ptr = ctxt->scebuffer + ctxt->metash[i].data_offset;
-				aes_crypt_ctr(&aes_ctxt, ctxt->metash[i].data_size, &nc_off, iv, buf, ptr, ptr);
+				memcpy(iv, ctxt->keys + _ES32(ctxt->metash[i].iv_index) * 0x10, 0x10);
+				aes_setkey_enc(&aes_ctxt, ctxt->keys + _ES32(ctxt->metash[i].key_index) * 0x10, 128);
+				u8 *ptr = ctxt->scebuffer + _ES64(ctxt->metash[i].data_offset);
+				aes_crypt_ctr(&aes_ctxt, _ES64(ctxt->metash[i].data_size), &nc_off, iv, buf, ptr, ptr);
 			}
 		}
 	}
@@ -923,7 +944,7 @@ BOOL sce_decrypt_data(sce_buffer_ctxt_t *ctxt)
 	return TRUE;
 }
 
-void sce_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
+void sce_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt, u8 *keyset)
 {
 	u32 i;
 
@@ -940,11 +961,17 @@ void sce_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 
 	//Print section infos.
 	_print_metadata_section_header_header(fp);
-	for(i = 0; i < ctxt->metah->section_count; i++)
+	for(i = 0; i < _ES32(ctxt->metah->section_count); i++)
 		_print_metadata_section_header(fp, &ctxt->metash[i], i);
 
 	//Print keys.
 	_print_sce_file_keys(fp, ctxt);
+	
+	//Print signature.
+	_print_sce_signature(fp, ctxt->sig);
+	
+	//Print signature status.
+	_print_sce_signature_status(fp, ctxt, keyset);
 }
 
 static s8 _sce_tmp_vstr[16];
@@ -981,7 +1008,7 @@ control_info_t *sce_get_ctrl_info(sce_buffer_ctxt_t *ctxt, u32 type)
 	LIST_FOREACH(iter, ctxt->self.cis)
 	{
 		control_info_t *ci = (control_info_t *)iter->value;
-		if(ci->type == type)
+		if(_ES32(ci->type) == type)
 			return ci;
 	}
 
@@ -993,7 +1020,7 @@ opt_header_t *sce_get_opt_header(sce_buffer_ctxt_t *ctxt, u32 type)
 	LIST_FOREACH(iter, ctxt->self.ohs)
 	{
 		opt_header_t *oh = (opt_header_t *)iter->value;
-		if(oh->type == type)
+		if(_ES32(oh->type) == type)
 			return oh;
 	}
 

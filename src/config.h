@@ -7,7 +7,7 @@
 #define _CONFIG_H_
 
 /*! scetool base version. */
-#define SCETOOL_VERSION_BASE "0.2.9"
+#define SCETOOL_VERSION_BASE "0.2.10"
 
 /*! Private build. */
 //#define CONFIG_PRIVATE_BUILD
@@ -26,10 +26,10 @@
 #endif
 
 /*! Private build options. */
-#ifdef CONFIG_PRIVATE_BUILD
+//#ifdef CONFIG_PRIVATE_BUILD
 	#define CONFIG_CUSTOM_INDIV_SEED
 	#define CONFIG_DUMP_INDIV_SEED
-#endif
+//#endif
 
 #if 0
 /*! scetool API. */

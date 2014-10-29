@@ -596,7 +596,7 @@ BOOL sce_decrypt_header(sce_buffer_ctxt_t *ctxt, u8 *metadata_info, u8 *keyset);
 BOOL sce_decrypt_data(sce_buffer_ctxt_t *ctxt);
 
 /*! Print SCE file info. */
-void sce_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt);
+void sce_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt, u8 *keyset);
 
 /*! Get version string from version. */
 s8 *sce_version_to_str(u64 version);

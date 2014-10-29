@@ -1,0 +1,2 @@
+Take both .lib files and put it to Visual_Studio installation folder\VC\lib\
+or compile it yourself from the official source code (http://zlib.net/zlib-1.2.8.tar.gz)

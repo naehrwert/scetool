@@ -30,11 +30,9 @@ static ci_data_npdrm_t *_sce_find_ci_npdrm(sce_buffer_ctxt_t *ctxt)
 		{
 			control_info_t *ci = (control_info_t *)iter->value;
 
-			if(ci->type == CONTROL_INFO_TYPE_NPDRM)
+			if(_ES32(ci->type) == CONTROL_INFO_TYPE_NPDRM)
 			{
 				ci_data_npdrm_t *np = (ci_data_npdrm_t *)((u8 *)ci + sizeof(control_info_t));
-				//Fixup.
-				_es_ci_data_npdrm(np);
 				return np;
 			}
 		}
@@ -65,14 +63,14 @@ BOOL np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 		return FALSE;
 	if(_klicensee_key != NULL)
 		memcpy(npdrm_key, _klicensee_key, 0x10);
-	else if(np->license_type == NP_LICENSE_FREE)
+	else if(_ES32(np->license_type) == NP_LICENSE_FREE)
 	{
 		ks_np_klic_free = keyset_find_by_name(CONFIG_NP_KLIC_FREE_KNAME);
 		if(ks_np_klic_free == NULL)
 			return FALSE;
 		memcpy(npdrm_key, ks_np_klic_free->erk, 0x10);
 	}
-	else if(np->license_type == NP_LICENSE_LOCAL)
+	else if(_ES32(np->license_type) == NP_LICENSE_LOCAL)
 	{
 		if ((klicensee_by_content_id((s8 *)np->content_id, npdrm_key)) == FALSE)
 			return FALSE;
@@ -80,6 +78,14 @@ BOOL np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 	else
 		return FALSE;
 
+	if(_raw == TRUE)
+	{
+		printf("[*] Klicensee: ");
+		int i;
+		for(i = 0; i < 0x10; i++)
+		printf("%02X ", npdrm_key[i]);
+		printf("\n");
+	}
 	aes_setkey_dec(&aes_ctxt, ks_klic_key->erk, METADATA_INFO_KEYBITS);
 	aes_crypt_ecb(&aes_ctxt, AES_DECRYPT, npdrm_key, npdrm_key);
 
@@ -107,14 +113,14 @@ BOOL np_encrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 		return FALSE;
 	if(_klicensee_key != NULL)
 		memcpy(npdrm_key, _klicensee_key, 0x10);
-	else if(np->license_type == NP_LICENSE_FREE)
+	else if(_ES32(np->license_type) == NP_LICENSE_FREE)
 	{
 		ks_np_klic_free = keyset_find_by_name(CONFIG_NP_KLIC_FREE_KNAME);
 		if(ks_np_klic_free == NULL)
 			return FALSE;
 		memcpy(npdrm_key, ks_np_klic_free->erk, 0x10);
 	}
-	else if(np->license_type == NP_LICENSE_LOCAL)
+	else if(_ES32(np->license_type) == NP_LICENSE_LOCAL)
 	{
 		if ((klicensee_by_content_id((s8 *)np->content_id, npdrm_key)) == FALSE)
 			return FALSE;
@@ -163,10 +169,10 @@ BOOL np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp)
 	else
 		return FALSE;
 
-	cinp->magic = NP_CI_MAGIC;
-	cinp->unknown_0 = 1;
-	cinp->license_type = npconf->license_type;
-	cinp->app_type = npconf->app_type;
+	cinp->magic = _ES32(NP_CI_MAGIC);
+	cinp->unknown_0 = _ES32(1);
+	cinp->license_type = _ES32(npconf->license_type);
+	cinp->app_type = _ES32(npconf->app_type);
 	memcpy(cinp->content_id, npconf->content_id, 0x30);
 	#ifdef CONFIG_PRIVATE_BUILD
 		_fill_rand_bytes(cinp->rndpad, 0x10);
@@ -174,11 +180,8 @@ BOOL np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp)
 		//Better than boring random bytes!
 		memcpy(cinp->rndpad, CONFIG_NPDRM_WATERMARK, 0x10);
 	#endif
-	cinp->unknown_1 = 0;
-	cinp->unknown_2 = 0;
-
-	//Fixup before hashing.
-	_es_ci_data_npdrm(cinp);
+	cinp->unknown_1 = _ES64(0);
+	cinp->unknown_2 = _ES64(0);
 
 	//Generate control info hash key.
 	for(i = 0; i < 0x10; i++)

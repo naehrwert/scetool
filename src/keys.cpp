@@ -351,24 +351,24 @@ keyset_t *keyset_find(sce_buffer_ctxt_t *ctxt)
 {
 	keyset_t *res = NULL;
 
-	switch(ctxt->sceh->header_type)
+	switch(_ES16(ctxt->sceh->header_type))
 	{
 	case SCE_HEADER_TYPE_SELF:
-		res = _keyset_find_for_self(ctxt->self.ai->self_type, ctxt->sceh->key_revision, ctxt->self.ai->version);
+		res = _keyset_find_for_self(_ES32(ctxt->self.ai->self_type), _ES16(ctxt->sceh->key_revision), _ES64(ctxt->self.ai->version));
 		break;
 	case SCE_HEADER_TYPE_RVK:
-		res = _keyset_find_for_rvk(ctxt->sceh->key_revision);
+		res = _keyset_find_for_rvk(_ES16(ctxt->sceh->key_revision));
 		break;
 	case SCE_HEADER_TYPE_PKG:
-		res = _keyset_find_for_pkg(ctxt->sceh->key_revision);
+		res = _keyset_find_for_pkg(_ES16(ctxt->sceh->key_revision));
 		break;
 	case SCE_HEADER_TYPE_SPP:
-		res = _keyset_find_for_spp(ctxt->sceh->key_revision);
+		res = _keyset_find_for_spp(_ES16(ctxt->sceh->key_revision));
 		break;
 	}
 
 	if(res == NULL)
-		printf("[*] Error: Could not find keyset for %s.\n", _get_name(_sce_header_types, ctxt->sceh->header_type));
+		printf("[*] Error: Could not find keyset for %s.\n", _get_name(_sce_header_types, _ES16(ctxt->sceh->header_type)));
 
 	return res;
 }
@@ -698,10 +698,10 @@ BOOL klicensee_by_content_id(const s8 *content_id, u8 *klicensee)
 
 		free(rif);
 
-		_LOG_VERBOSE("klicensee decrypted.\n");
+		_LOG_VERBOSE("Klicensee decrypted.\n");
 	}
 	else
-		_LOG_VERBOSE("klicensee converted from %s.rap.\n", content_id);
+		_LOG_VERBOSE("Klicensee converted from %s.rap.\n", content_id);
 
 	return TRUE;
 }

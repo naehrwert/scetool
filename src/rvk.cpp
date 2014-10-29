@@ -94,7 +94,7 @@ void rvk_print(FILE *fp, sce_buffer_ctxt_t *ctxt)
 {
 	u32 i;
 
-	rvk_header_t *rvkh = (rvk_header_t *)(ctxt->scebuffer + ctxt->metash[0].data_offset);
+	rvk_header_t *rvkh = (rvk_header_t *)(ctxt->scebuffer + _ES64(ctxt->metash[0].data_offset));
 	_es_rvk_header(rvkh);
 
 	_print_rvk_header(fp, rvkh);
@@ -102,7 +102,7 @@ void rvk_print(FILE *fp, sce_buffer_ctxt_t *ctxt)
 	//Program revoke.
 	if(rvkh->type_0 == 4)
 	{
-		prg_rvk_entry_t *ent = (prg_rvk_entry_t *)(ctxt->scebuffer + ctxt->metash[1].data_offset);
+		prg_rvk_entry_t *ent = (prg_rvk_entry_t *)(ctxt->scebuffer + _ES64(ctxt->metash[1].data_offset));
 		_print_prg_rvk_entry_header(fp);
 		for(i = 0; i < rvkh->entcnt; i++)
 		{
@@ -113,7 +113,7 @@ void rvk_print(FILE *fp, sce_buffer_ctxt_t *ctxt)
 	else if(rvkh->type_0 == 3)
 	{
 		fprintf(fp, "[*] Package Revoke List Entries:\n");
-		u8 *ent = (u8 *)(ctxt->scebuffer + ctxt->metash[1].data_offset);
+		u8 *ent = (u8 *)(ctxt->scebuffer + _ES64(ctxt->metash[1].data_offset));
 		for(i = 0; i < rvkh->entcnt; i++)
 		{
 			_hexdump(fp, " ent", i*0x20, ent, 0x20, TRUE);

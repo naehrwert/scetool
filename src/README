@@ -84,6 +84,11 @@ OPTIONS                 Possible Values       Explanation
  -j, --np-add-sig       TRUE/FALSE(default)   Whether to add a NP sig. or not.
 
 ==> History <==
+Version 0.2.10
+ - Added ECDSA Signature parsing and validation.
+ - Added klicensee parsing.
+ - Fixed metadata info IV parsing.
+ - Enabled Individuals seed functions for <public build> configuration.
 Version 0.2.9
  - Plaintext sections will now take less space in metadata header keys array.
  - Added option to specifiy a template SELF to take configuration values from.

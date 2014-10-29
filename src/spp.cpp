@@ -38,11 +38,11 @@ void spp_print(FILE *fp, sce_buffer_ctxt_t *ctxt)
 	u32 i;
 
 	//First section contains the SPP header.
-	spp_header_t *header = (spp_header_t *)(ctxt->scebuffer + ctxt->metash[0].data_offset);
+	spp_header_t *header = (spp_header_t *)(ctxt->scebuffer + _ES64(ctxt->metash[0].data_offset));
 	_es_spp_header(header);
 
 	//Second section contains the entries.
-	u8 *ent = ctxt->scebuffer + ctxt->metash[1].data_offset;
+	u8 *ent = ctxt->scebuffer + _ES64(ctxt->metash[1].data_offset);
 
 	_print_spp_header(fp, header);
 

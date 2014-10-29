@@ -348,7 +348,6 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
-#ifndef _DEBUG
 int main(int argc, char **argv)
 {
 	s8 *ps3 = NULL, path[256];
@@ -447,4 +446,4 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-#endif
+
