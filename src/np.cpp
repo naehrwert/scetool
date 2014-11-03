@@ -49,11 +49,13 @@ void np_set_klicensee(u8 *klicensee)
 BOOL np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 {
 	aes_context aes_ctxt;
-	keyset_t *ks_np_klic_free, *ks_klic_key;
+	ci_data_npdrm_t *np;
+	keyset_t *ks_np_klic_free, *ks_klic_key, *ks_np_ci;
+	u8 hash_check[0x10], ci_key[0x10];
 	u8 npdrm_key[0x10];
 	u8 npdrm_iv[0x10];
-	ci_data_npdrm_t *np;
-
+	int i;
+	
 	if((np = _sce_find_ci_npdrm(ctxt)) == NULL)
 		return FALSE;
 
@@ -66,9 +68,23 @@ BOOL np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 	else if(_ES32(np->license_type) == NP_LICENSE_FREE)
 	{
 		ks_np_klic_free = keyset_find_by_name(CONFIG_NP_KLIC_FREE_KNAME);
-		if(ks_np_klic_free == NULL)
+		ks_np_ci = keyset_find_by_name(CONFIG_NP_CI_KNAME);
+		if(ks_np_ci == NULL)
 			return FALSE;
-		memcpy(npdrm_key, ks_np_klic_free->erk, 0x10);
+		
+		//Generate control info hash key.
+		for(i = 0; i < 0x10; i++)
+		ci_key[i] = ks_np_ci->erk[i] ^ ks_np_klic_free->erk[i];
+
+		//Check header for control info hash and try to load appropriate klicensee key.
+		aes_omac1(hash_check, (u8 *)_sce_find_ci_npdrm(ctxt), 0x60, ci_key, KEYBITS(0x10));
+		if (memcmp(hash_check, np->hash_ci, 0x10) != 0)
+		{
+			if((dev_klicensee_by_content_id((s8 *)np->content_id, npdrm_key)) == FALSE)
+				return FALSE;
+		}
+		else 
+			memcpy(npdrm_key, ks_np_klic_free->erk, 0x10);
 	}
 	else if(_ES32(np->license_type) == NP_LICENSE_LOCAL)
 	{
@@ -80,12 +96,9 @@ BOOL np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 
 	if(_raw == TRUE)
 	{
-		printf("[*] Klicensee: ");
-		int i;
-		for(i = 0; i < 0x10; i++)
-		printf("%02X ", npdrm_key[i]);
-		printf("\n");
+		_hexdump(stdout, "[*] Klicensee:", 0, npdrm_key, sizeof(npdrm_key), FALSE);
 	}
+
 	aes_setkey_dec(&aes_ctxt, ks_klic_key->erk, METADATA_INFO_KEYBITS);
 	aes_crypt_ecb(&aes_ctxt, AES_DECRYPT, npdrm_key, npdrm_key);
 
@@ -151,7 +164,7 @@ BOOL np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp)
 	if(ks_np_tid == NULL || ks_np_ci == NULL)
 		return FALSE;
 
-	//Can only create NPDRM SELF with local and free license.
+	//Can only create NPDRM SELF with "local" and free license.
 	if(_klicensee_key != NULL)
 		memcpy(npdrm_key, _klicensee_key, 0x10);
 	else if(npconf->license_type == NP_LICENSE_FREE)

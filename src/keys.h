@@ -35,6 +35,7 @@
 #define ACT_DAT_LENGTH 0x1038
 #define RIF_LENGTH 0x98
 #define RAP_LENGTH 0x10
+#define KLIC_LENGTH 0x10
 
 /*! IDPS, RIF, act.dat key lengths. */
 #define IDPS_KEYBITS 128
@@ -127,6 +128,7 @@ BOOL vsh_curves_load(const s8 *cfile);
 curve_t *vsh_curve_find(u8 ctype);
 
 BOOL klicensee_by_content_id(const s8 *content_id, u8 *klicensee);
+BOOL dev_klicensee_by_content_id(const s8 *content_id, u8 *klicensee);
 
 keyset_t *keyset_from_buffer(u8 *keyset);
 

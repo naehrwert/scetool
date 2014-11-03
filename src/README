@@ -9,6 +9,7 @@ NP local license handling (C) 2012 by flatz
  - /data/act.dat : act.dat
  - /rifs/* : *.rif files
  - /raps/* : *.rap files
+ - /klics/* : *.klic files
 
 ==> Keyfile Format <==
  [keyname]
@@ -84,6 +85,10 @@ OPTIONS                 Possible Values       Explanation
  -j, --np-add-sig       TRUE/FALSE(default)   Whether to add a NP sig. or not.
 
 ==> History <==
+Version 0.2.11
+ - Added .klic files support for easy decryption of the free-license-type NPDRM selfs.
+ - "PS3" path environment variable will now be searched for "data", "raps" and "klics" directories.
+ - Enabled encryption for APP and NPDRM SPU selfs. 
 Version 0.2.10
  - Added ECDSA Signature parsing and validation.
  - Added klicensee parsing.

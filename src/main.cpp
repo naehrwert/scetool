@@ -377,6 +377,8 @@ int main(int argc, char **argv)
 		sprintf(path, "%s/%s", ps3, CONFIG_KEYS_FILE);
 		if(access(path, 0) != 0)
 			sprintf(path, "%s/%s", CONFIG_KEYS_PATH, CONFIG_KEYS_FILE);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s/%s", ps3, CONFIG_KEYS_PATH, CONFIG_KEYS_FILE);
 	}
 	else
 		sprintf(path, "%s/%s", CONFIG_KEYS_PATH, CONFIG_KEYS_FILE);
@@ -399,6 +401,8 @@ int main(int argc, char **argv)
 		sprintf(path, "%s/%s", ps3, CONFIG_CURVES_FILE);
 		if(access(path, 0) != 0)
 			sprintf(path, "%s/%s", CONFIG_CURVES_PATH, CONFIG_CURVES_FILE);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s/%s", ps3, CONFIG_CURVES_PATH, CONFIG_CURVES_FILE);
 	}
 	else
 		sprintf(path, "%s/%s", CONFIG_CURVES_PATH, CONFIG_CURVES_FILE);
@@ -413,6 +417,8 @@ int main(int argc, char **argv)
 		sprintf(path, "%s/%s", ps3, CONFIG_VSH_CURVES_FILE);
 		if(access(path, 0) != 0)
 			sprintf(path, "%s/%s", CONFIG_VSH_CURVES_PATH, CONFIG_VSH_CURVES_FILE);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s/%s", ps3, CONFIG_VSH_CURVES_PATH, CONFIG_VSH_CURVES_FILE);
 	}
 	else
 		sprintf(path, "%s/%s", CONFIG_VSH_CURVES_PATH, CONFIG_VSH_CURVES_FILE);

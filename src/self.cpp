@@ -916,7 +916,7 @@ static BOOL _build_self_32(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 	_es_elf32_ehdr(ehdr);
 
 	//Copy program headers.
-	ctxt->makeself->phdrs = (Elf32_Phdr *)_memdup(ctxt->makeself->elf + ehdr->e_phoff, sizeof(Elf32_Phdr) * ehdr->e_phnum);
+	ctxt->makeself->phdrs = (Elf32_Phdr *)_memdup(ctxt->makeself->elf + ehdr->e_phoff , sizeof(Elf32_Phdr) * ehdr->e_phnum);
 	ctxt->makeself->phsize = sizeof(Elf32_Phdr) * ehdr->e_phnum;
 	phdrs = (Elf32_Phdr *)_memdup(ctxt->makeself->elf + ehdr->e_phoff, sizeof(Elf32_Phdr) * ehdr->e_phnum);
 
@@ -1043,7 +1043,7 @@ static BOOL _build_self_64(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 
 BOOL self_build_self(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 {
-	//const u8 *eident;
+	const u8 *eident;
 
 	//Fill config values.
 	ctxt->sceh->key_revision = _ES16(sconf->key_revision);
@@ -1075,8 +1075,8 @@ BOOL self_build_self(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 	_fill_sce_version(ctxt);
 
 	//Check for 32 bit or 64 bit ELF.
-	//eident = (const u8*)ctxt->makeself->elf;
-	if(sconf->self_type == SELF_TYPE_LDR || sconf->self_type == SELF_TYPE_ISO /*|| eident[EI_CLASS] == ELFCLASS32*/)
+	eident = (const u8*)ctxt->makeself->elf;
+	if(sconf->self_type == SELF_TYPE_LDR || sconf->self_type == SELF_TYPE_ISO || eident[EI_CLASS] == ELFCLASS32)
 		return _build_self_32(ctxt, sconf);
 	return _build_self_64(ctxt, sconf);
 }

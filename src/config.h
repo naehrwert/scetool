@@ -7,7 +7,7 @@
 #define _CONFIG_H_
 
 /*! scetool base version. */
-#define SCETOOL_VERSION_BASE "0.2.10"
+#define SCETOOL_VERSION_BASE "0.2.11"
 
 /*! Private build. */
 //#define CONFIG_PRIVATE_BUILD
@@ -63,6 +63,8 @@
 #define CONFIG_RIF_PATH "./rifs"
 #define CONFIG_RAP_FILE_EXT ".rap"
 #define CONFIG_RAP_PATH "./raps"
+#define CONFIG_KLIC_FILE_EXT ".klic"
+#define CONFIG_KLIC_PATH "./klics"
 
 /*! Key names. */
 #define CONFIG_NP_TID_KNAME "NP_tid"

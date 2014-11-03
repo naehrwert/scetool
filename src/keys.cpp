@@ -462,6 +462,8 @@ static u8 *idps_load()
 		sprintf(path, "%s/%s", ps3, CONFIG_IDPS_FILE);
 		if(access(path, 0) != 0)
 			sprintf(path, "%s/%s", CONFIG_IDPS_PATH, CONFIG_IDPS_FILE);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s/%s", ps3, CONFIG_IDPS_PATH, CONFIG_IDPS_FILE);
 	}
 	else
 		sprintf(path, "%s/%s", CONFIG_IDPS_PATH, CONFIG_IDPS_FILE);
@@ -495,6 +497,8 @@ static act_dat_t *act_dat_load()
 		sprintf(path, "%s/%s", ps3, CONFIG_ACT_DAT_FILE);
 		if(access(path, 0) != 0)
 			sprintf(path, "%s/%s", CONFIG_ACT_DAT_PATH, CONFIG_ACT_DAT_FILE);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s/%s", ps3, CONFIG_ACT_DAT_PATH, CONFIG_ACT_DAT_FILE);
 	}
 	else
 		sprintf(path, "%s/%s", CONFIG_ACT_DAT_PATH, CONFIG_ACT_DAT_FILE);
@@ -528,6 +532,8 @@ static rif_t *rif_load(const s8 *content_id)
 		sprintf(path, "%s/%s%s", ps3, content_id, CONFIG_RIF_FILE_EXT);
 		if(access(path, 0) != 0)
 			sprintf(path, "%s/%s%s", CONFIG_RIF_PATH, content_id, CONFIG_RIF_FILE_EXT);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s/%s%s", ps3, CONFIG_RIF_PATH, content_id, CONFIG_RIF_FILE_EXT);
 	}
 	else
 		sprintf(path, "%s/%s%s", CONFIG_RIF_PATH, content_id, CONFIG_RIF_FILE_EXT);
@@ -560,6 +566,8 @@ static u8 *rap_load(const s8 *content_id)
 		sprintf(path, "%s/%s%s", ps3, content_id, CONFIG_RAP_FILE_EXT);
 		if(access(path, 0) != 0)
 			sprintf(path, "%s/%s%s", CONFIG_RAP_PATH, content_id, CONFIG_RAP_FILE_EXT);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s/%s%s", ps3, CONFIG_RAP_PATH, content_id, CONFIG_RAP_FILE_EXT);
 	}
 	else
 		sprintf(path, "%s/%s%s", CONFIG_RAP_PATH, content_id, CONFIG_RAP_FILE_EXT);
@@ -703,6 +711,45 @@ BOOL klicensee_by_content_id(const s8 *content_id, u8 *klicensee)
 	else
 		_LOG_VERBOSE("Klicensee converted from %s.rap.\n", content_id);
 
+	return TRUE;
+}
+
+BOOL dev_klicensee_by_content_id(const s8 *content_id, u8 *klicensee)
+{
+
+	s8 *ps3 = NULL, path[256];
+	u8 *klic;
+	u32 len = 0;
+	
+	if((ps3 = getenv(CONFIG_ENV_PS3)) != NULL)
+		if(access(ps3, 0) != 0)
+			ps3 = NULL;
+
+	if(ps3 != NULL)
+	{
+		sprintf(path, "%s/%s%s", ps3, content_id, CONFIG_KLIC_FILE_EXT);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s%s", CONFIG_KLIC_PATH, content_id, CONFIG_KLIC_FILE_EXT);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s/%s%s", ps3, CONFIG_KLIC_PATH, content_id, CONFIG_KLIC_FILE_EXT);
+	}
+	else
+		sprintf(path, "%s/%s%s", CONFIG_KLIC_PATH, content_id, CONFIG_KLIC_FILE_EXT);
+
+	klic = (u8 *)_read_buffer(path, &len);
+	
+	if(klic == NULL)
+		return FALSE;
+	
+	if(len != KLIC_LENGTH)
+	{
+		free(klic);
+		return FALSE;
+	}
+	memcpy(klicensee, klic, KLIC_LENGTH);
+	free(klic);
+	_LOG_VERBOSE("Klicensee loaded from %s.klic.\n", content_id);
+	
 	return TRUE;
 }
 
