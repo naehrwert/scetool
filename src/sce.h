@@ -381,7 +381,8 @@ typedef struct _ci_data_npdrm
 {
 	/*! Magic. */
 	u32 magic;
-	u32 unknown_0;
+	/*! Version. */
+	u32 version;
 	/*! License type. */
 	u32 license_type;
 	/*! Application type. */
@@ -394,8 +395,10 @@ typedef struct _ci_data_npdrm
 	u8 hash_cid_fname[0x10];
 	/*! Control info hash. */
 	u8 hash_ci[0x10];
-	u64 unknown_1;
-	u64 unknown_2;
+	/*! Start of the Validity period. */
+	u64 limited_time_start;
+	/*! End of the Validity period. */
+	u64 limited_time_end;
 } ci_data_npdrm_t;
 
 /*! Optional header. */

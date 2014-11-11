@@ -55,7 +55,7 @@ BOOL np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 	u8 npdrm_key[0x10];
 	u8 npdrm_iv[0x10];
 	int i;
-	
+
 	if((np = _sce_find_ci_npdrm(ctxt)) == NULL)
 		return FALSE;
 
@@ -183,7 +183,7 @@ BOOL np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp)
 		return FALSE;
 
 	cinp->magic = _ES32(NP_CI_MAGIC);
-	cinp->unknown_0 = _ES32(1);
+	cinp->version = _ES32(1);
 	cinp->license_type = _ES32(npconf->license_type);
 	cinp->app_type = _ES32(npconf->app_type);
 	memcpy(cinp->content_id, npconf->content_id, 0x30);
@@ -193,8 +193,8 @@ BOOL np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp)
 		//Better than boring random bytes!
 		memcpy(cinp->rndpad, CONFIG_NPDRM_WATERMARK, 0x10);
 	#endif
-	cinp->unknown_1 = _ES64(0);
-	cinp->unknown_2 = _ES64(0);
+	cinp->limited_time_start = _ES64(0);
+	cinp->limited_time_end = _ES64(0);
 
 	//Generate control info hash key.
 	for(i = 0; i < 0x10; i++)

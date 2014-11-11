@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "types.h"
 #include "config.h"
@@ -120,6 +121,8 @@ void _print_sce_version(FILE *fp, sce_version_t *sv)
 void _print_control_info(FILE *fp, control_info_t *ci)
 {
 	const s8 *name;
+	time_t t;
+	tm* aTm;
 
 	fprintf(fp, "[*] Control Info\n");
 
@@ -158,16 +161,63 @@ void _print_control_info(FILE *fp, control_info_t *ci)
 			ci_data_npdrm_t *np = (ci_data_npdrm_t *)((u8 *)ci + sizeof(control_info_t));
 			//Was already fixed in decrypt_header.
 			//_es_ci_data_npdrm(np);
-			fprintf(fp, " Magic        0x%08X [%s]\n", _ES32(np->magic), (_ES32(np->magic) == NP_CI_MAGIC ? "OK" : "ERROR"));
-			fprintf(fp, " unknown_0    0x%08X\n", _ES32(np->unknown_0));
-			fprintf(fp, " Licence Type 0x%08X\n", _ES32(np->license_type));
-			fprintf(fp, " App Type     0x%08X\n", _ES32(np->app_type));
-			fprintf(fp, " ContentID    %s\n", np->content_id);
-			_hexdump(fp, " Random Pad  ", 0, np->rndpad, 0x10, FALSE);
-			_hexdump(fp, " CID_FN Hash ", 0, np->hash_cid_fname, 0x10, FALSE);
-			_hexdump(fp, " CI Hash     ", 0, np->hash_ci, 0x10, FALSE);
-			fprintf(fp, " unknown_1    0x%016llX\n", _ES64(np->unknown_1));
-			fprintf(fp, " unknown_2    0x%016llX\n", _ES64(np->unknown_2));
+			fprintf(fp, " Magic          0x%08X [%s]\n", _ES32(np->magic), (_ES32(np->magic) == NP_CI_MAGIC ? "OK" : "ERROR"));
+			fprintf(fp, " Version        0x%08X\n", _ES32(np->version));
+			
+			name = _get_name(_np_license_types, _ES32(np->license_type));
+			if(name != NULL)
+			{
+				fprintf(fp, " Licence Type   ");
+				_PRINT_RAW(fp, "0x%08X ", _ES32(np->license_type));
+				fprintf(fp, "[%s]\n", name);
+			}
+			else
+				fprintf(fp, " Licence Type   0x%08X\n", _ES32(np->license_type));
+
+			name = _get_name(_np_app_types, _ES32(np->app_type));
+			if(name != NULL)
+			{
+				fprintf(fp, " App Type       ");
+				_PRINT_RAW(fp, "0x%08X ", _ES32(np->app_type));
+				fprintf(fp, "[%s]\n", name);
+			}
+			else
+				fprintf(fp, " App Type       0x%08X\n", _ES32(np->app_type));
+
+			fprintf(fp, " ContentID      %s\n", np->content_id);
+			_hexdump(fp, " Random Pad    ", 0, np->rndpad, 0x10, FALSE);
+			_hexdump(fp, " CID_FN Hash   ", 0, np->hash_cid_fname, 0x10, FALSE);
+			_hexdump(fp, " CI Hash       ", 0, np->hash_ci, 0x10, FALSE);
+
+			t = (time_t)(_ES64(np->limited_time_start) / 1000);
+			aTm = localtime(&t);
+			if(_ES64(np->limited_time_start) != 0)
+			{
+				fprintf(fp, " Validity Start ");
+				_PRINT_RAW(fp, "0x%016llX ", _ES64(np->limited_time_start));
+				fprintf(fp, "[%04d/%02d/%02d %02d:%02d:%02d]\n",aTm->tm_year+1900, aTm->tm_mon+1, aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec);
+			}
+			else
+			{
+				fprintf(fp, " Validity Start ");
+				_PRINT_RAW(fp, "0x%016llX ", _ES64(np->limited_time_start));
+				fprintf(fp, "[Unlimited]\n");	
+			}
+
+			t = (time_t)(_ES64(np->limited_time_end) / 1000);
+			aTm = localtime(&t);
+			if(_ES64(np->limited_time_end) != 0)
+			{
+				fprintf(fp, " Validity End   ");
+				_PRINT_RAW(fp, "0x%016llX ", _ES64(np->limited_time_end));
+				fprintf(fp, "[%04d/%02d/%02d %02d:%02d:%02d]\n",aTm->tm_year+1900, aTm->tm_mon+1, aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec);
+			}
+			else
+			{
+				fprintf(fp, " Validity End   ");
+				_PRINT_RAW(fp, "0x%016llX ", _ES64(np->limited_time_end));
+				fprintf(fp, "[Unlimited]\n");	
+			}
 		}
 		break;
 	}
@@ -222,7 +272,7 @@ void _print_opt_header(FILE *fp, opt_header_t *oh)
 			fprintf(fp, " Flags     0x%016llX [ ", cf->flags);
 			_print_cap_flags_flags(fp, cf);
 			fprintf(fp, "]\n");
-	
+
 			fprintf(fp, " unknown_6 0x%08X\n", cf->unk6);
 			fprintf(fp, " unknown_7 0x%08X\n", cf->unk7);
 		}
@@ -573,11 +623,25 @@ BOOL self_write_to_elf(sce_buffer_ctxt_t *ctxt, const s8 *elf_out)
 		{
 			if(_ES32(msh[i].type) == METADATA_SECTION_TYPE_PHDR)
 			{
-				_es_elf32_phdr(&ph[_ES32(msh[i].index)]);
-				fseek(fp, ph[_ES32(msh[i].index)].p_offset, SEEK_SET);
-				fwrite(ctxt->scebuffer + _ES64(msh[i].data_offset), sizeof(u8), _ES64(msh[i].data_size), fp);
+				if(_ES32(msh[i].compressed) == METADATA_SECTION_COMPRESSED)
+				{
+					_es_elf32_phdr(&ph[_ES32(msh[i].index)]);
+					u8 *data = (u8 *)malloc(ph[_ES32(msh[i].index)].p_filesz);
+
+					_zlib_inflate(ctxt->scebuffer + _ES64(msh[i].data_offset), _ES64(msh[i].data_size), data, ph[_ES32(msh[i].index)].p_filesz);
+					fseek(fp, ph[_ES32(msh[i].index)].p_offset, SEEK_SET);
+					fwrite(data, sizeof(u8), ph[_ES32(msh[i].index)].p_filesz, fp);
+
+					free(data);
+				}
+				else
+				{
+					_es_elf32_phdr(&ph[_ES32(msh[i].index)]);
+					fseek(fp, ph[_ES32(msh[i].index)].p_offset, SEEK_SET);
+					fwrite(ctxt->scebuffer + _ES64(msh[i].data_offset), sizeof(u8), _ES64(msh[i].data_size), fp);
+				}
 			}
-		}		
+		}
 
 		//Write section headers.
 		if(_ES64(ctxt->self.selfh->shdr_offset) != 0)
@@ -827,7 +891,7 @@ static BOOL _create_optional_headers(sce_buffer_ctxt_t *ctxt, self_config_t *sco
 				_set_cap_flags(self_type, capf);
 			else
 				memcpy(capf, sconf->cap_flags, 0x20);
-			
+
 			list_add_back(ctxt->self.ohs, oh);
 		}
 		break;
@@ -850,7 +914,7 @@ static BOOL _create_optional_headers(sce_buffer_ctxt_t *ctxt, self_config_t *sco
 			if(sconf->indiv_seed != NULL)
 				memcpy(is, sconf->indiv_seed, sconf->indiv_seed_size);
 #endif
-			
+
 			list_add_back(ctxt->self.ohs, oh);
 		}
 		break;
@@ -916,7 +980,7 @@ static BOOL _build_self_32(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 	_es_elf32_ehdr(ehdr);
 
 	//Copy program headers.
-	ctxt->makeself->phdrs = (Elf32_Phdr *)_memdup(ctxt->makeself->elf + ehdr->e_phoff , sizeof(Elf32_Phdr) * ehdr->e_phnum);
+	ctxt->makeself->phdrs = (Elf32_Phdr *)_memdup(ctxt->makeself->elf + ehdr->e_phoff, sizeof(Elf32_Phdr) * ehdr->e_phnum);
 	ctxt->makeself->phsize = sizeof(Elf32_Phdr) * ehdr->e_phnum;
 	phdrs = (Elf32_Phdr *)_memdup(ctxt->makeself->elf + ehdr->e_phoff, sizeof(Elf32_Phdr) * ehdr->e_phnum);
 
@@ -933,17 +997,33 @@ static BOOL _build_self_32(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 
 	//Copy sections, fill section infos and metadata section headers.
 	ctxt->self.si = (section_info_t *)malloc(sizeof(section_info_t) * ehdr->e_phnum);
+	u32 loff = 0xFFFFFFFF, skip = 0;
 	for(i = 0; i < ehdr->e_phnum; i++)
 	{
 		_es_elf32_phdr(&phdrs[i]);
-		void *sec = _memdup(ctxt->makeself->elf + phdrs[i].p_offset, phdrs[i].p_filesz);
-		//Never compress sections on SPU SELFs.
-		sce_add_data_section(ctxt, sec, phdrs[i].p_filesz, FALSE);
 
 		//Add section info.
 		_add_phdr_section(ctxt, phdrs[i].p_type, phdrs[i].p_filesz, i);
-		//Fill metadata section header.
-		sce_set_metash(ctxt, METADATA_SECTION_TYPE_PHDR, phdrs[i].p_type == PT_LOAD ? TRUE : FALSE, i);
+
+		//Fill metadata section header but skip identical program header offsets.
+		if(sconf->skip_sections == TRUE && (phdrs[i].p_offset == loff || !(phdrs[i].p_type == PT_LOAD || phdrs[i].p_type == PT_PS3_PRX_RELOC || phdrs[i].p_type == 0x700000A8)))
+		{
+			const s8 *name = _get_name(_ph_types, phdrs[i].p_type);
+			if(name != NULL)
+				_LOG_VERBOSE("Skipped program header %-8s @ 0x%08X (0x%08X)\n", name, phdrs[i].p_offset, phdrs[i].p_filesz);
+			else
+				_LOG_VERBOSE("Skipped program header 0x%08X @ 0x%08X (0x%08X)\n", phdrs[i].p_type, phdrs[i].p_offset, phdrs[i].p_filesz);
+			skip++;
+		}
+		else
+		{
+			void *sec = _memdup(ctxt->makeself->elf + phdrs[i].p_offset, phdrs[i].p_filesz);
+			//SPU sections may be compressed.
+			sce_add_data_section(ctxt, sec, phdrs[i].p_filesz, TRUE);
+			sce_set_metash(ctxt, METADATA_SECTION_TYPE_PHDR, TRUE /*(phdrs[i].p_type == PT_LOAD || phdrs[i].p_type == PT_PS3_PRX_RELOC || phdrs[i].p_type == 0x700000A8) ? TRUE : FALSE*/, i - skip);
+		}
+
+		loff = phdrs[i].p_offset;
 	}
 
 	//Section info count.
@@ -953,10 +1033,11 @@ static BOOL _build_self_32(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 
 	//Add a section for the section headers.
 	if(sconf->add_shdrs == TRUE)
-		if(_add_shdrs_section(ctxt, i) == TRUE)
+		if(_add_shdrs_section(ctxt, i - skip) == TRUE)
 			i++;
 
 	//Metadata.
+	i -= skip;
 	ctxt->metah->section_count = _ES32(i);
 
 	return TRUE;

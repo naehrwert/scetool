@@ -7,7 +7,7 @@
 #define _CONFIG_H_
 
 /*! scetool base version. */
-#define SCETOOL_VERSION_BASE "0.2.11"
+#define SCETOOL_VERSION_BASE "0.2.12"
 
 /*! Private build. */
 //#define CONFIG_PRIVATE_BUILD

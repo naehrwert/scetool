@@ -58,6 +58,15 @@ id_to_name_t _optional_header_types[] =
 	{0, NULL}
 };
 
+/*! NPDRM license types. */
+id_to_name_t _np_license_types[] = 
+{
+	{NP_LICENSE_NETWORK, "NETWORK"},
+	{NP_LICENSE_LOCAL, "LOCAL"},
+	{NP_LICENSE_FREE, "FREE"},
+	{0, NULL}
+};
+
 /*! NPDRM application types. */
 id_to_name_t _np_app_types[] = 
 {
@@ -65,7 +74,7 @@ id_to_name_t _np_app_types[] =
 	{NP_TYPE_EXEC, "EXEC"},
 	{NP_TYPE_USPRX, "USPRX"},
 	{NP_TYPE_UEXEC, "UEXEC"},
-	{0, NULL},
+	{0, NULL}
 };
 
 /*! Auth IDs. */

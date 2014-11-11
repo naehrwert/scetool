@@ -21,6 +21,9 @@ extern id_to_name_t _control_info_types[];
 /*! Optional header types. */
 extern id_to_name_t _optional_header_types[];
 
+/*! NPDRM license types. */
+extern id_to_name_t _np_license_types[];
+
 /*! NPDRM application types. */
 extern id_to_name_t _np_app_types[];
 

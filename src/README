@@ -85,6 +85,9 @@ OPTIONS                 Possible Values       Explanation
  -j, --np-add-sig       TRUE/FALSE(default)   Whether to add a NP sig. or not.
 
 ==> History <==
+Version 0.2.12
+ - Enabled options to compress and skip sections for SPU selfs.
+ - Extended information about the NPDRM selfs.
 Version 0.2.11
  - Added .klic files support for easy decryption of the free-license-type NPDRM selfs.
  - "PS3" path environment variable will now be searched for "data", "raps" and "klics" directories.
