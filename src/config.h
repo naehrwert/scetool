@@ -10,9 +10,9 @@
 #define SCETOOL_VERSION_BASE "0.2.13"
 
 /*! Private build. */
-#define CONFIG_PRIVATE_BUILD
-//#define BUILD_FOR "naehrwert"
-#define BUILD_FOR "unicorns"
+//#define CONFIG_PRIVATE_BUILD
+#define BUILD_FOR "naehrwert"
+//#define BUILD_FOR "unicorns"
 
 /*! scetool version. */
 #ifdef CONFIG_PRIVATE_BUILD
