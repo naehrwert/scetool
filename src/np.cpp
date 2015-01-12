@@ -86,7 +86,7 @@ BOOL np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 		else 
 			memcpy(npdrm_key, ks_np_klic_free->erk, 0x10);
 	}
-	else if(_ES32(np->license_type) == NP_LICENSE_LOCAL)
+	else if(_ES32(np->license_type) == NP_LICENSE_LOCAL || _ES32(np->license_type) == NP_LICENSE_NETWORK )
 	{
 		if ((klicensee_by_content_id((s8 *)np->content_id, npdrm_key)) == FALSE)
 			return FALSE;

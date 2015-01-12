@@ -885,6 +885,7 @@ static BOOL _create_optional_headers(sce_buffer_ctxt_t *ctxt, self_config_t *sco
 				oh->next = _ES64(0);
 
 			oh_data_cap_flags_t *capf = (oh_data_cap_flags_t *)((u8 *)oh + sizeof(opt_header_t));
+			memset(capf, 0, 0x20);
 
 			//Add default flags.
 			if(sconf->cap_flags == NULL)

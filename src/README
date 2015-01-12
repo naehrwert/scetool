@@ -85,6 +85,9 @@ OPTIONS                 Possible Values       Explanation
  -j, --np-add-sig       TRUE/FALSE(default)   Whether to add a NP sig. or not.
 
 ==> History <==
+Version 0.2.13
+- Unlocked decryption for self files with network license type.
+- Fixed one minor bug with capability flags.
 Version 0.2.12
  - Enabled options to compress and skip sections for SPU selfs.
  - Extended information about the NPDRM selfs.
