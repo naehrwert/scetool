@@ -85,6 +85,9 @@ OPTIONS                 Possible Values       Explanation
  -j, --np-add-sig       TRUE/FALSE(default)   Whether to add a NP sig. or not.
 
 ==> History <==
+Version 0.2.14
+- Added PS3 Linux support.
+- Fixed ECDSA checking.
 Version 0.2.13
 - Unlocked decryption for self files with network license type.
 - Fixed one minor bug with capability flags.

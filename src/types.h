@@ -38,6 +38,10 @@ typedef unsigned long long int u64;
 #define _ES16(val) \
 	((u16)(((((u16)val) & 0xff00) >> 8) | \
 	       ((((u16)val) & 0x00ff) << 8)))
+		   
+#ifdef __BIG_ENDIAN__
+	 #define _ES16(val) val
+#endif
 
 //Endian swap for u32.
 #define _ES32(val) \
@@ -45,6 +49,10 @@ typedef unsigned long long int u64;
 	       ((((u32)val) & 0x00ff0000) >> 8 ) | \
 	       ((((u32)val) & 0x0000ff00) << 8 ) | \
 	       ((((u32)val) & 0x000000ff) << 24)))
+		   
+#ifdef __BIG_ENDIAN__
+	 #define _ES32(val) val
+#endif
 
 //Endian swap for u64.
 #define _ES64(val) \
@@ -57,6 +65,10 @@ typedef unsigned long long int u64;
 	       ((((u64)val) & 0x000000000000ff00ull) << 40) | \
 	       ((((u64)val) & 0x00000000000000ffull) << 56)))
 
+#ifdef __BIG_ENDIAN__
+	 #define _ES64(val) val
+#endif
+	 
 #ifdef __cplusplus
 }
 #endif

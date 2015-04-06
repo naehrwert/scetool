@@ -119,6 +119,9 @@ void _print_sce_signature(FILE *fp, signature_t *sig)
 void _print_sce_signature_status(FILE *fp, sce_buffer_ctxt_t *ctxt, u8 *keyset)
 {
 	u8 hash[0x14];
+	u8 Q[0x28];
+	u8 M[0x14];
+	u8 zero_buf[0x14];
 	keyset_t *ks;
 
 	//Check if a keyset is provided.
@@ -134,11 +137,25 @@ void _print_sce_signature_status(FILE *fp, sce_buffer_ctxt_t *ctxt, u8 *keyset)
 	}
 	//Generate header hash.
 	sha1(ctxt->scebuffer, _ES64(ctxt->metah->sig_input_length), hash);
-
-	//Validate the signature.
+	_hexdump(fp, " E", 0, hash, 0x14, FALSE); 
+	
 	ecdsa_set_curve(ks->ctype);
 	ecdsa_set_pub(ks->pub);
-	fprintf(fp, "[*] Signature status: %s\n", (ecdsa_verify(hash, ctxt->sig->r, ctxt->sig->s) == TRUE ? "OK" : "FAIL"));
+	
+	#ifdef CONFIG_PRIVATE_BUILD
+	//validate private key and calculate M
+	ec_priv_to_pub(ks->priv, Q);
+	get_m(ctxt->sig->r, ctxt->sig->s, hash, ks->priv, M);
+	if (memcmp(ks->pub, Q, sizeof(Q)) == 0)
+		_hexdump (fp, " M", 0, M, 0x14, FALSE);
+	#endif
+	
+	//Validate the signature.
+	memset(zero_buf, 0, sizeof(zero_buf));
+	if ((memcmp(ctxt->sig->r, zero_buf, sizeof(zero_buf)) == 0) || (memcmp(ctxt->sig->s, zero_buf, sizeof(zero_buf)) == 0))
+		fprintf(fp, "[*] Signature status: FAIL\n");
+	else
+		fprintf(fp, "[*] Signature status: %s\n", (ecdsa_verify(hash, ctxt->sig->r, ctxt->sig->s) == TRUE ? "OK" : "FAIL"));
 }
 
 static sce_buffer_ctxt_t *_sce_create_ctxt()
