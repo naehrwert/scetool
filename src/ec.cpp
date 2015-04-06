@@ -73,7 +73,7 @@ static void elt_square(u8 *d, u8 *a)
 	elt_mul(d, a, a);
 }
 
-static void elt_inv(u8 *d, u8 *a)
+void elt_inv(u8 *d, u8 *a)
 {
 	u8 s[20];
 	elt_copy(s, a);
@@ -314,12 +314,16 @@ static int check_ecdsa(struct point *Q, u8 *R, u8 *S, u8 *hash)
 	return (bn_compare(rr, R, 21) == 0);
 }
 
-#if 0
-static void ec_priv_to_pub(u8 *k, u8 *Q)
+
+void ec_priv_to_pub(u8 *k, u8 *Q)
 {
-	point_mul(Q, k, ec_G);
+	struct point mQ;
+	point_mul(&mQ, k, &ec_G);
+	point_from_mon(&mQ);
+	elt_copy(Q, mQ.x);
+	elt_copy(Q+20, mQ.y);
 }
-#endif
+
 
 int ecdsa_set_curve(u32 type)
 {
@@ -354,4 +358,31 @@ int ecdsa_verify(u8 *hash, u8 *R, u8 *S)
 void ecdsa_sign(u8 *hash, u8 *R, u8 *S)
 {
 	generate_ecdsa(R, S, ec_k, hash);
+}
+
+void get_m (u8 *r, u8 *s, u8 *e, u8 *k, u8 *m)
+{
+u8 tmp_r[21], tmp_s[21], tmp_e[21], tmp_k[21];
+u8 tmp_mul[21], tmp_sum[21], tmp_inv[21];
+
+tmp_r[0] = tmp_s[0] = tmp_e[0] = 0;
+bn_copy(tmp_r, r, 21);
+bn_copy(tmp_s, s, 21);
+bn_copy(tmp_e + 1, e, 20);
+bn_reduce(tmp_e, ec_N, 21);
+bn_to_mon(tmp_r, ec_N, 21);
+bn_to_mon(tmp_s, ec_N, 21);
+bn_to_mon(tmp_e, ec_N, 21);
+
+tmp_k[0] = 0;
+bn_copy(tmp_k, k, 21);
+bn_reduce(tmp_k, ec_N, 21);
+bn_to_mon(tmp_k, ec_N, 21);
+
+bn_mon_mul(tmp_mul, tmp_r, tmp_k, ec_N, 21);
+bn_add(tmp_sum, tmp_mul, tmp_e, ec_N, 21);
+bn_mon_inv(tmp_inv, tmp_s, ec_N, 21);
+bn_mon_mul(tmp_mul, tmp_inv, tmp_sum, ec_N, 21);
+bn_from_mon(tmp_mul, ec_N, 21);
+memcpy (m, tmp_mul + 1, 20);
 }
