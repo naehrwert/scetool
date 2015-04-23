@@ -891,9 +891,6 @@ BOOL sce_decrypt_header(sce_buffer_ctxt_t *ctxt, u8 *metadata_info, u8 *keyset)
 		memcpy((u8 *)ctxt->metai, metadata_info, sizeof(metadata_info));
 	}
 
-	if(ctxt->metai->key_pad[0] != 0x00 || ctxt->metai->iv_pad[0] != 0x00)
-		return FALSE;
-
 	//Decrypt metadata header, metadata section headers and keys.
 	nc_off = 0;
 	memcpy (ctr_iv, ctxt->metai->iv ,0x10);
@@ -901,6 +898,10 @@ BOOL sce_decrypt_header(sce_buffer_ctxt_t *ctxt, u8 *metadata_info, u8 *keyset)
 	aes_crypt_ctr(&aes_ctxt, 
 		_ES64(ctxt->sceh->header_len) - (sizeof(sce_header_t) + _ES32(ctxt->sceh->metadata_offset) + sizeof(metadata_info_t)), 
 		&nc_off, ctr_iv, sblk, (u8 *)ctxt->metah, (u8 *)ctxt->metah);
+
+	//Check if the metadata was decrypted properly.
+	 if (_ES64(ctxt->metah->sig_input_length) > _ES64(ctxt->sceh->header_len))
+		return FALSE;
 
 	//Metadata decrypted.
 	ctxt->mdec = TRUE;
