@@ -2,6 +2,7 @@
 * Copyright (c) 2011-2013 by naehrwert
 * This file is released under the GPLv2.
 */
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,29 +31,27 @@ extern s8 *_meta_info;
 extern s8 *_keyset;
 extern s8 *_auth_id;
 extern s8 *_vendor_id;
-extern s8 *_self_type;
+extern s8 *_program_type;
 extern s8 *_app_version;
 extern s8 *_fw_version;
 extern s8 *_add_shdrs;
 extern s8 *_ctrl_flags;
 extern s8 *_cap_flags;
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 extern s8 *_indiv_seed;
-#endif
 extern s8 *_license_type;
 extern s8 *_app_type;
 extern s8 *_content_id;
 extern s8 *_real_fname;
 extern s8 *_add_sig;
 
-static BOOL _is_hexdigit(s8 c)
+static bool _is_hexdigit(s8 c)
 {
 	if((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
 		return TRUE;
 	return FALSE;
 }
 
-static BOOL _is_hexnumber(const s8 *str)
+static bool _is_hexnumber(const s8 *str)
 {
 	u32 i, len = strlen(str);
 	for(i = 0; i < len; i++)
@@ -61,7 +60,7 @@ static BOOL _is_hexnumber(const s8 *str)
 	return TRUE;
 }
 
-static BOOL _fill_self_config_template(s8 *file, self_config_t *sconf)
+static bool _fill_self_config_template(s8 *file, self_config_t *sconf)
 {
 	u8 *buf = _read_buffer(file, NULL);
 	if(buf != NULL)
@@ -74,16 +73,16 @@ static BOOL _fill_self_config_template(s8 *file, self_config_t *sconf)
 				_LOG_VERBOSE("Template header decrypted.\n");
 
 				_LOG_VERBOSE("Using:\n");
-				sconf->key_revision = _ES16(ctxt->sceh->key_revision);
+				sconf->key_revision = _ES16(ctxt->cfh->key_revision);
 				_IF_VERBOSE(printf(" Key Revision 0x%04X\n", sconf->key_revision));
 				sconf->auth_id = _ES64(ctxt->self.ai->auth_id);
 				_IF_VERBOSE(printf(" Auth-ID      0x%016llX\n", sconf->auth_id));
 				sconf->vendor_id = _ES32(ctxt->self.ai->vendor_id);
 				_IF_VERBOSE(printf(" Vendor-ID    0x%08X\n", sconf->vendor_id));
-				sconf->self_type = _ES32(ctxt->self.ai->self_type);
-				_IF_VERBOSE(printf(" SELF-Type    0x%08X\n", sconf->self_type));
+				sconf->program_type = _ES32(ctxt->self.ai->program_type);
+				_IF_VERBOSE(printf(" Program-Type    0x%08X\n", sconf->program_type));
 				sconf->app_version = _ES64(ctxt->self.ai->version);
-				_IF_VERBOSE(printf(" APP Version  0x%016llX\n", sconf->app_version));
+				_IF_VERBOSE(printf(" APP-Version  0x%016llX\n", sconf->app_version));
 
 				control_info_t *ci = sce_get_ctrl_info(ctxt, CONTROL_INFO_TYPE_DIGEST);
 				ci_data_digest_40_t *cid = (ci_data_digest_40_t *)((u8 *)ci + sizeof(control_info_t));
@@ -100,16 +99,14 @@ static BOOL _fill_self_config_template(s8 *file, self_config_t *sconf)
 				sconf->cap_flags = (u8 *)_memdup(((u8 *)oh) + sizeof(opt_header_t), 0x20);
 				_IF_VERBOSE(_hexdump(stdout, " Capability Flags", 0, sconf->cap_flags, 0x20, 0));
 
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 				sconf->indiv_seed = NULL;
-				if(_ES32(ctxt->self.ai->self_type) == SELF_TYPE_ISO)
+				if(_ES32(ctxt->self.ai->program_type) == PROGRAM_TYPE_ISO)
 				{
 					oh = sce_get_opt_header(ctxt, OPT_HEADER_TYPE_INDIV_SEED);
 					sconf->indiv_seed = (u8 *)_memdup(((u8 *)oh) + sizeof(opt_header_t), _ES32(oh->size) - sizeof(opt_header_t));
 					sconf->indiv_seed_size = _ES32(oh->size) - sizeof(opt_header_t);
 					_IF_VERBOSE(_hexdump(stdout, " Individuals Seed", 0, sconf->indiv_seed, sconf->indiv_seed_size, 0));
 				}
-#endif
 
 				sconf->add_shdrs = TRUE;
 				if(_add_shdrs != NULL)
@@ -139,7 +136,7 @@ static BOOL _fill_self_config_template(s8 *file, self_config_t *sconf)
 	return FALSE;
 }
 
-static BOOL _fill_self_config(self_config_t *sconf)
+static bool _fill_self_config(self_config_t *sconf)
 {
 	if(_key_rev == NULL)
 	{
@@ -151,7 +148,7 @@ static BOOL _fill_self_config(self_config_t *sconf)
 		printf("[*] Error (Key Revision): Please provide a valid hexadecimal number.\n");
 		return FALSE;
 	}
-	sconf->key_revision = _x_to_u64(_key_rev);
+	sconf->key_revision = (u16)_x_to_u64(_key_rev);
 
 	if(_auth_id == NULL)
 	{
@@ -165,20 +162,20 @@ static BOOL _fill_self_config(self_config_t *sconf)
 		printf("[*] Error: Please specify a vendor ID.\n");
 		return FALSE;
 	}
-	sconf->vendor_id = _x_to_u64(_vendor_id);
+	sconf->vendor_id = (u32)_x_to_u64(_vendor_id);
 
-	if(_self_type == NULL)
+	if(_program_type == NULL)
 	{
-		printf("[*] Error: Please specify a SELF type.\n");
+		printf("[*] Error: Please specify a program type.\n");
 		return FALSE;
 	}
-	u64 type = _get_id(_self_types_params, _self_type);
+	u64 type = _get_id(_program_types_params, _program_type);
 	if(type == (u64)(-1))
 	{
-		printf("[*] Error: Invalid SELF type.\n");
+		printf("[*] Error: Invalid program type.\n");
 		return FALSE;
 	}
-	sconf->self_type = type;
+	sconf->program_type = (u32)type;
 
 	if(_app_version == NULL)
 	{
@@ -223,7 +220,6 @@ static BOOL _fill_self_config(self_config_t *sconf)
 		sconf->cap_flags = _x_to_u8_buffer(_cap_flags);
 	}
 
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 	sconf->indiv_seed = NULL;
 	if(_indiv_seed != NULL)
 	{
@@ -236,14 +232,13 @@ static BOOL _fill_self_config(self_config_t *sconf)
 		sconf->indiv_seed = _x_to_u8_buffer(_indiv_seed);
 		sconf->indiv_seed_size = len / 2;
 	}
-#endif
 
 	sconf->npdrm_config = NULL;
 
 	return TRUE;
 }
 
-static BOOL _fill_npdrm_config(self_config_t *sconf)
+static bool _fill_npdrm_config(self_config_t *sconf)
 {
 	if((sconf->npdrm_config = (npdrm_config_t *)malloc(sizeof(npdrm_config_t))) == NULL)
 		return FALSE;
@@ -275,7 +270,7 @@ static BOOL _fill_npdrm_config(self_config_t *sconf)
 		printf("[*] Error: Invalid application type.\n");
 		return FALSE;
 	}
-	sconf->npdrm_config->app_type = type;
+	sconf->npdrm_config->app_type = (u32)type;
 
 	if(_content_id == NULL)
 	{
@@ -334,13 +329,22 @@ void frontend_print_infos(s8 *file)
 			}
 			else
 				printf("[*] Warning: Could not decrypt header.\n");
-			sce_print_info(stdout, ctxt, keyset);
-			if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF)
+
+			cf_print_info(stdout, ctxt);
+			//sce_print_info(stdout, ctxt, keyset);
+			if(_ES16(ctxt->cfh->category) == CF_CATEGORY_SELF)
 				self_print_info(stdout, ctxt);
-			else if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_RVK && ctxt->mdec == TRUE)
+			else if(_ES16(ctxt->cfh->category) == CF_CATEGORY_RVK && ctxt->mdec == TRUE)
 				rvk_print(stdout, ctxt);
-			else if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SPP && ctxt->mdec == TRUE)
+			else if(_ES16(ctxt->cfh->category) == CF_CATEGORY_SPP && ctxt->mdec == TRUE)
 				spp_print(stdout, ctxt);
+			
+			sce_print_info(stdout, ctxt, keyset);
+			if(_ES16(ctxt->cfh->category) == CF_CATEGORY_SELF)
+				self_print_encrypted_info(stdout, ctxt);
+			if(ctxt->mdec == TRUE)
+				print_sce_signature_info(stdout, ctxt, keyset);
+			
 			free(ctxt);
 		}
 		else
@@ -387,14 +391,14 @@ void frontend_decrypt(s8 *file_in, s8 *file_out)
 				if(sce_decrypt_data(ctxt))
 				{
 					_LOG_VERBOSE("Data decrypted.\n");
-					if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SELF)
+					if(_ES16(ctxt->cfh->category) == CF_CATEGORY_SELF)
 					{
 						if(self_write_to_elf(ctxt, file_out) == TRUE)
 							printf("[*] ELF written to %s.\n", file_out);
 						else
 							printf("[*] Error: Could not write ELF.\n");
 					}
-					else if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_RVK)
+					else if(_ES16(ctxt->cfh->category) == CF_CATEGORY_RVK)
 					{
 						if(_write_buffer(file_out, ctxt->scebuffer + _ES64(ctxt->metash[0].data_offset), 
 							_ES64(ctxt->metash[0].data_size) + _ES64(ctxt->metash[1].data_size)))
@@ -402,7 +406,7 @@ void frontend_decrypt(s8 *file_in, s8 *file_out)
 						else
 							printf("[*] Error: Could not write RVK.\n");
 					}
-					else if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_PKG)
+					else if(_ES16(ctxt->cfh->category) == CF_CATEGORY_PKG)
 					{
 						/*if(_write_buffer(file_out, ctxt->scebuffer + _ES64(ctxt->metash[0].data_offset), 
 							_ES64(ctxt->metash[0].data_size) + _ES64(ctxt->metash[1].data_size) + _ES64(ctxt->metash[2].data_size)))
@@ -411,7 +415,7 @@ void frontend_decrypt(s8 *file_in, s8 *file_out)
 							printf("[*] Error: Could not write PKG.\n");*/
 						printf("soon...\n");
 					}
-					else if(_ES16(ctxt->sceh->header_type) == SCE_HEADER_TYPE_SPP)
+					else if(_ES16(ctxt->cfh->category) == CF_CATEGORY_SPP)
 					{
 						if(_write_buffer(file_out, ctxt->scebuffer + _ES64(ctxt->metash[0].data_offset), 
 							_ES64(ctxt->metash[0].data_size) + _ES64(ctxt->metash[1].data_size)))
@@ -437,7 +441,7 @@ void frontend_decrypt(s8 *file_in, s8 *file_out)
 
 void frontend_encrypt(s8 *file_in, s8 *file_out)
 {
-	BOOL can_compress = FALSE;
+	bool can_compress = FALSE;
 	self_config_t sconf;
 	sce_buffer_ctxt_t *ctxt;
 	u32 file_len = 0;
@@ -468,7 +472,7 @@ void frontend_encrypt(s8 *file_in, s8 *file_out)
 
 	if(strcmp(_file_type, "SELF") == 0)
 	{
-		if(_self_type == NULL && _template == NULL)
+		if(_program_type == NULL && _template == NULL)
 		{
 			printf("[*] Error: Please specify a SELF type.\n");
 			return;
@@ -487,7 +491,7 @@ void frontend_encrypt(s8 *file_in, s8 *file_out)
 				return;
 		}
 
-		if(sconf.self_type == SELF_TYPE_NPDRM)
+		if(sconf.program_type == PROGRAM_TYPE_NPDRM)
 			if(_fill_npdrm_config(&sconf) == FALSE)
 				return;
 
@@ -501,7 +505,7 @@ void frontend_encrypt(s8 *file_in, s8 *file_out)
 		}
 
 		//SPU SELFs may not be compressed.
-		if(!(sconf.self_type == SELF_TYPE_LDR || sconf.self_type == SELF_TYPE_ISO))
+		if(!(sconf.program_type == PROGRAM_TYPE_LDR || sconf.program_type == PROGRAM_TYPE_ISO))
 			can_compress = TRUE;
 	}
 	else if(strcmp(_file_type, "RVK") == 0)
@@ -547,7 +551,7 @@ void frontend_encrypt(s8 *file_in, s8 *file_out)
 	{
 		printf("[*] %s written.\n", file_out);
 		//Add NPDRM footer signature.
-		if(sconf.self_type == SELF_TYPE_NPDRM && _add_sig != NULL && strcmp(_add_sig, "TRUE") == 0)
+		if(sconf.program_type == PROGRAM_TYPE_NPDRM && _add_sig != NULL && strcmp(_add_sig, "TRUE") == 0)
 		{
 			if(np_sign_file(file_out) == TRUE)
 				printf("[*] Added NPDRM footer signature.\n");

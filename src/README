@@ -16,7 +16,7 @@ NP local license handling (C) 2012 by flatz
  type={SELF, RVK, PKG, SPP, OTHER}
  revision={00, ..., 18, 8000}
  version={..., 0001000000000000, ...}
- self_type={LV0, LV1, LV2, APP, ISO, LDR, UNK_7, NPDRM}
+ program_type={LV0, LV1, LV2, APP, ISO, LDR, UNK_7, NPDRM}
  key=...
  erk=...
  riv=...
@@ -28,7 +28,7 @@ NP local license handling (C) 2012 by flatz
  [metldr]
  type=SELF
  revision=00
- self_type=LDR
+ program_type=LDR
  erk=0000000000000000000000000000000000000000000000000000000000000000
  riv=00000000000000000000000000000000
  pub=00000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -60,7 +60,7 @@ OPTIONS                 Possible Values       Explanation
  -v, --verbose                                Enable verbose output.
  -r, --raw                                    Enable raw value output.
  -t, --template         File-in               Template file (SELF only)
- -0, --sce-type         SELF/RVK/PKG/SPP      SCE File Type
+ -0, --category         SELF/RVK/PKG/SPP      SCE File Type
  -1, --compress-data    TRUE/FALSE(default)   Whether to compress data or not.
  -s, --skip-sections    TRUE(default)/FALSE   Whether to skip sections or not.
  -2, --key-revision     e.g. 00,01,...,0A,... Key Revision
@@ -68,10 +68,10 @@ OPTIONS                 Possible Values       Explanation
 
  -K, --keyset           32(Key)16(IV)
                         40(Pub)21(Priv)1(CT)  Override keyset.
- -3, --self-auth-id     e.g. 1010000001000003 Authentication ID
- -4, --self-vendor-id   e.g. 01000002         Vendor ID
- -5, --self-type        LV0/LV1/LV2/APP/ISO/
-                        LDR/NPDRM             SELF Type
+ -3, --program-auth-id     e.g. 1010000001000003 Authentication ID
+ -4, --program-vendor-id   e.g. 01000002         Vendor ID
+ -5, --program-type        LV0/LV1/LV2/APP/ISO/
+                        LDR/NPDRM             Program Type
  -A, --self-app-version e.g. 0001000000000000 Application Version
  -6, --self-fw-version  e.g. 0003004100000000 Firmware Version
  -7, --self-add-shdrs   TRUE(default)/FALSE   Whether to add ELF shdrs or not.
@@ -85,6 +85,12 @@ OPTIONS                 Possible Values       Explanation
  -j, --np-add-sig       TRUE/FALSE(default)   Whether to add a NP sig. or not.
 
 ==> History <==
+Version 0.3.0
+- Added Internal keys support.
+- Added Signed Elf ver.2 decryption support.
+- Decrypting header will now use key-bruteforce method.
+- Options changed.
+- Removed Pub/Priv configs, enabled all features by default.
 Version 0.2.14
 - Added PS3 Linux support.
 - Fixed ECDSA checking.

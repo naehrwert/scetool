@@ -2,6 +2,7 @@
 * Copyright (c) 2011-2013 by naehrwert
 * This file is released under the GPLv2.
 */
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
 #include <string.h>
@@ -13,7 +14,7 @@
 #include "zlib.h"
 #include "mt19937.h"
 
-void _hexdump(FILE *fp, const char *name, u32 offset, u8 *buf, int len, BOOL print_addr)
+void _hexdump(FILE *fp, const char *name, u32 offset, u8 *buf, int len, bool print_addr)
 {
 	int i, j, align = strlen(name) + 1;
 
@@ -133,9 +134,9 @@ void _zlib_inflate(u8 *in, u64 len_in, u8 *out, u64 len_out)
 
 	inflateInit(&s);
 
-	s.avail_in = len_in;
+	s.avail_in = (u32)len_in;
 	s.next_in = in;
-	s.avail_out = len_out;
+	s.avail_out = (u32)len_out;
 	s.next_out = out;
 
 	inflate(&s, Z_FINISH);
@@ -154,9 +155,9 @@ void _zlib_deflate(u8 *in, u64 len_in, u8 *out, u64 len_out)
 
 	deflateInit(&s, Z_BEST_COMPRESSION);
 
-	s.avail_in = len_in;
+	s.avail_in = (u32)len_in;
 	s.next_in = in;
-	s.avail_out = len_out;
+	s.avail_out = (u32)len_out;
 	s.next_out = out;
 
 	deflate(&s, Z_FINISH);
@@ -165,7 +166,7 @@ void _zlib_deflate(u8 *in, u64 len_in, u8 *out, u64 len_out)
 }
 
 static mt19937_ctxt_t _mt19937_ctxt;
-static BOOL _mt_init = FALSE;
+static bool _mt_init = FALSE;
 
 u8 _get_rand_byte()
 {

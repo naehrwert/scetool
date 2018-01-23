@@ -23,7 +23,7 @@ typedef long long int s64;
 typedef unsigned long long int u64;
 #endif
 
-#define BOOL int
+#define bool int
 #define TRUE 1
 #define FALSE 0
 

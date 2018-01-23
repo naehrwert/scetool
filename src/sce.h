@@ -17,12 +17,12 @@
 /*! Header align. */
 #define HEADER_ALIGN 0x80
 
-/*! SCE header magic value ("SCE\0"). */
-#define SCE_HEADER_MAGIC 0x53434500
+/*! Cert file magic value ("SCE\0"). */
+#define CF_MAGIC 0x53434500
 
-/*! SCE header versions. */
-/*! Header version 2. */
-#define SCE_HEADER_VERSION_2 2
+/*! Cert file versions. */
+/*! Cert file version 2. */
+#define CF_VERSION_2 2
 
 /*! Key revisions. */
 #define KEY_REVISION_0 0x00
@@ -52,15 +52,15 @@
 //#define KEY_REVISION_ 0x18
 #define KEY_REVISION_DEBUG 0x8000
 
-/*! SCE header types. */
-/*! SELF header. */
-#define SCE_HEADER_TYPE_SELF 1
-/*! RVK header. */
-#define SCE_HEADER_TYPE_RVK 2
-/*! PKG header. */
-#define SCE_HEADER_TYPE_PKG 3
-/*! SPP header. */
-#define SCE_HEADER_TYPE_SPP 4
+/*! Cert file categories. */
+/*! SELF file. */
+#define CF_CATEGORY_SELF 1
+/*! RVK file. */
+#define CF_CATEGORY_RVK 2
+/*! PKG file. */
+#define CF_CATEGORY_PKG 3
+/*! SPP file. */
+#define CF_CATEGORY_SPP 4
 
 /*! Sub header types. */
 /*! SCE version header. */
@@ -108,6 +108,9 @@
 /*! Section is compressed. */
 #define METADATA_SECTION_COMPRESSED 2
 
+/*! Signature types. */
+#define SIGNATURE_ALGORITHM_ECDSA 1
+
 /*! Signature sizes. */
 /*! Signature S part size. */
 #define SIGNATURE_S_SIZE 21
@@ -124,23 +127,23 @@
 /*! SCE version present. */
 #define SCE_VERSION_PRESENT 1
 
-/*! SELF types. */
+/*! Program types. */
 /*! lv0. */
-#define SELF_TYPE_LV0 1
+#define PROGRAM_TYPE_LV0 1
 /*! lv1. */
-#define SELF_TYPE_LV1 2
+#define PROGRAM_TYPE_LV1 2
 /*! lv2. */
-#define SELF_TYPE_LV2 3
+#define PROGRAM_TYPE_LV2 3
 /*! Application. */
-#define SELF_TYPE_APP 4
+#define PROGRAM_TYPE_APP 4
 /*! Isolated SPU module. */
-#define SELF_TYPE_ISO 5
+#define PROGRAM_TYPE_ISO 5
 /*! Secure loader. */
-#define SELF_TYPE_LDR 6
+#define PROGRAM_TYPE_LDR 6
 /*! Unknown type 7. */
-#define SELF_TYPE_UNK_7 7
+#define PROGRAM_TYPE_UNK_7 7
 /*! NPDRM application. */
-#define SELF_TYPE_NPDRM 8
+#define PROGRAM_TYPE_NPDRM 8
 
 /*! NPDRM control info magic value ("NPD\0"). */
 #define NP_CI_MAGIC 0x4E504400
@@ -157,8 +160,8 @@
 #define NP_TYPE_USPRX (NP_TYPE_UPDATE | NP_TYPE_SPRX)
 #define NP_TYPE_UEXEC (NP_TYPE_UPDATE | NP_TYPE_EXEC)
 
-/*! SCE header. */
-typedef struct _sce_header
+/*! Cert file header. */
+typedef struct _cert_file_header
 {
 	/*! Magic value. */
 	u32 magic;
@@ -166,22 +169,22 @@ typedef struct _sce_header
 	u32 version;
 	/*! Key revision. */
 	u16 key_revision;
-	/*! Header type. */
-	u16 header_type;
-	/*! Metadata offset. */
-	u32 metadata_offset;
-	/*! Header length. */
-	u64 header_len;
-	/*! Length of encapsulated data. */
-	u64 data_len;
-} sce_header_t;
+	/*! File category. */
+	u16 category;
+	/*! Extended header size. */
+	u32 ext_header_size;
+	/*! Offset of encapsulated file. */
+	u64 file_offset;
+	/*! Size of encapsulated file. */
+	u64 file_size;
+} cert_file_header_t;
 
 /*! SELF header. */
 typedef struct _self_header
 {
 	/*! Header type. */
 	u64 header_type;
-	/*! Application info offset. */
+	/*! Program info offset. */
 	u64 app_info_offset;
 	/*! ELF offset. */
 	u64 elf_offset;
@@ -218,7 +221,8 @@ typedef struct _metadata_header
 {
 	/*! Signature input length. */
 	u64 sig_input_length;
-	u32 unknown_0;
+	/*! Signature algorithm. */
+	u32 sig_algorithm;
 	/*! Section count. */
 	u32 section_count;
 	/*! Key count. */
@@ -305,7 +309,7 @@ typedef struct _sce_version_data_30
 #define VENDOR_TERRITORY_MASK 0xFF000000
 #define VENDOR_ID_MASK 0x00FFFFFF
 
-/*! Application info. */
+/*! Program info. */
 typedef struct _app_info
 {
 	/*! Auth ID. */
@@ -313,7 +317,7 @@ typedef struct _app_info
 	/*! Vendor ID. */
 	u32 vendor_id;
 	/*! SELF type. */
-	u32 self_type;
+	u32 program_type;
 	/*! Version. */
 	u64 version;
 	/*! Padding. */
@@ -449,7 +453,7 @@ typedef struct _sce_section_ctxt
 	/*! Offset. */
 	u32 offset;
 	/*! May be compressed. */
-	BOOL may_compr;
+	bool may_compr;
 } sce_section_ctxt_t;
 
 typedef struct _makeself_ctxt
@@ -482,8 +486,8 @@ typedef struct _sce_buffer_ctxt
 	/*! SCE file buffer. */
 	u8 *scebuffer;
 
-	/*! SCE header. */
-	sce_header_t *sceh;
+	/*! Cert file header. */
+	cert_file_header_t *cfh;
 	/*! File type dependent header. */
 	union
 	{
@@ -491,7 +495,7 @@ typedef struct _sce_buffer_ctxt
 		{
 			/*! SELF header. */
 			self_header_t *selfh;
-			/*! Application info. */
+			/*! Program info. */
 			app_info_t *ai;
 			/*! Section info. */
 			section_info_t *si;
@@ -517,18 +521,18 @@ typedef struct _sce_buffer_ctxt
 	signature_t *sig;
 
 	/*! Metadata decrypted? */
-	BOOL mdec;
+	bool mdec;
 
 	/*! Data layout. */
-	/*! SCE header offset. */
-	u32 off_sceh;
+	/*! Cert file header offset. */
+	u32 off_cfh;
 	union
 	{
 		struct
 		{
 			/*! SELF header offset. */
 			u32 off_selfh;
-			/*! Application info offset. */
+			/*! Program info offset. */
 			u32 off_ai;
 			/*! ELF header offset. */
 			u32 off_ehdr;
@@ -575,10 +579,10 @@ sce_buffer_ctxt_t *sce_create_ctxt_from_buffer(u8 *scebuffer);
 sce_buffer_ctxt_t *sce_create_ctxt_build_self(u8 *elf, u32 elf_len);
 
 /*! Add data section to SCE context. */
-void sce_add_data_section(sce_buffer_ctxt_t *ctxt, void *buffer, u32 size, BOOL may_compr);
+void sce_add_data_section(sce_buffer_ctxt_t *ctxt, void *buffer, u32 size, bool may_compr);
 
 /*! Set metadata section header. */
-void sce_set_metash(sce_buffer_ctxt_t *ctxt, u32 type, BOOL encrypted, u32 idx);
+void sce_set_metash(sce_buffer_ctxt_t *ctxt, u32 type, bool encrypted, u32 idx);
 
 /*! Compress data. */
 void sce_compress_data(sce_buffer_ctxt_t *ctxt);
@@ -587,19 +591,25 @@ void sce_compress_data(sce_buffer_ctxt_t *ctxt);
 void sce_layout_ctxt(sce_buffer_ctxt_t *ctxt);
 
 /*! Encrypt context. */
-BOOL sce_encrypt_ctxt(sce_buffer_ctxt_t *ctxt, u8 *keyset);
+bool sce_encrypt_ctxt(sce_buffer_ctxt_t *ctxt, u8 *keyset);
 
 /*! Write context to file. */
-BOOL sce_write_ctxt(sce_buffer_ctxt_t *ctxt, s8 *fname);
+bool sce_write_ctxt(sce_buffer_ctxt_t *ctxt, s8 *fname);
 
 /*! Decrypt header (use passed metadata_into if not NULL). */
-BOOL sce_decrypt_header(sce_buffer_ctxt_t *ctxt, u8 *metadata_info, u8 *keyset);
+bool sce_decrypt_header(sce_buffer_ctxt_t *ctxt, u8 *metadata_info, u8 *keyset);
 
 /*! Decrypt data. */
-BOOL sce_decrypt_data(sce_buffer_ctxt_t *ctxt);
+bool sce_decrypt_data(sce_buffer_ctxt_t *ctxt);
+
+/*! Print SCE header info. */
+void cf_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt);
 
 /*! Print SCE file info. */
 void sce_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt, u8 *keyset);
+
+/*! Print SCE signature status. */
+void print_sce_signature_info(FILE *fp, sce_buffer_ctxt_t *ctxt, u8 *keyset);
 
 /*! Get version string from version. */
 s8 *sce_version_to_str(u64 version);

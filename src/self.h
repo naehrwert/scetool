@@ -26,11 +26,11 @@
 typedef struct _self_config
 {
 	/*! Add section headers. */
-	BOOL add_shdrs;
+	bool add_shdrs;
 	/*! Compress data. */
-	BOOL compress_data;
+	bool compress_data;
 	/*! Skip sections. */
-	BOOL skip_sections;
+	bool skip_sections;
 
 	/*! Key revision. */
 	u16 key_revision;
@@ -38,35 +38,35 @@ typedef struct _self_config
 	u64 auth_id;
 	/*! Vendor ID. */
 	u32 vendor_id;
-	/*! SELF type. */
-	u32 self_type;
+	/*! Program type. */
+	u32 program_type;
 	/*! Application version. */
 	u64 app_version;
 	/*! Firmware version. */
 	u64 fw_version;
-
 	/*! Control flags. */
 	u8 *ctrl_flags;
 	/*! Capability flags. */
 	u8 *cap_flags;
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 	/*! Individuals seed. */
 	u8 *indiv_seed;
 	/*! Individuals seed size. */
 	u32 indiv_seed_size;
-#endif
 
 	/*! NPDRM config (used if not NULL). */
 	npdrm_config_t *npdrm_config;
 } self_config_t;
 
 /*! Print SELF info. */
-BOOL self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt);
+bool self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt);
+
+/*! Print SELF encrypted info. */
+bool self_print_encrypted_info(FILE *fp, sce_buffer_ctxt_t *ctxt);
 
 /*! Create ELF from SELF. */
-BOOL self_write_to_elf(sce_buffer_ctxt_t *ctxt, const s8 *elf_out);
+bool self_write_to_elf(sce_buffer_ctxt_t *ctxt, const s8 *elf_out);
 
 /*! Create SELF from ELF. */
-BOOL self_build_self(sce_buffer_ctxt_t *ctxt, self_config_t *sconf);
+bool self_build_self(sce_buffer_ctxt_t *ctxt, self_config_t *sconf);
 
 #endif

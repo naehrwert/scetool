@@ -925,7 +925,7 @@ typedef struct
    interpretation of the AUXV. Must be > 16.  */
 #define AT_IGNOREPPC	22		/* Entry should be ignored.  */
 
-#define	AT_SECURE	23		/* Boolean, was exec setuid-like?  */
+#define	AT_SECURE	23		/* boolean, was exec setuid-like?  */
 
 /* Pointer to the global system page used for system calls and other
    nice things.  */
@@ -1463,7 +1463,7 @@ typedef struct
 #define PT_MIPS_RTPROC  0x70000001	/* Runtime procedure table. */
 #define PT_MIPS_OPTIONS 0x70000002
 
-/* Special program header types.  */
+/* Special elf program header types.  */
 
 #define PF_MIPS_LOCAL	0x10000000
 

@@ -28,7 +28,7 @@ static void _print_rvk_header(FILE *fp, rvk_header_t *h)
 /*
 typedef struct _prg_rvk_entry
 {
-	u32 self_type; //3, 4
+	u32 program_type; //3, 4
 	u32 unk_1; //1, 3
 	union
 	{
@@ -65,11 +65,11 @@ static void _print_prg_rvk_entry(FILE *fp, prg_rvk_entry_t *e)
 {
 	const s8 *name;
 
-	name = _get_name(_self_types, e->self_type);
+	name = _get_name(_program_types, e->program_type);
 	if(name != NULL)
 		fprintf(fp, " %-19s ", name);
 	else
-		fprintf(fp, " 0x%08X          ", e->self_type);
+		fprintf(fp, " 0x%08X          ", e->program_type);
 
 	name = _get_name(_check_type_values, e->check_type);
 	if(name != NULL)

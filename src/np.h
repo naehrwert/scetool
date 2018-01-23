@@ -28,15 +28,15 @@ typedef struct _npdrm_config
 void np_set_klicensee(u8 *klicensee);
 
 /*! Remove NPDRM layer. */
-BOOL np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt);
+bool np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt);
 
 /*! Add NPDRM layer. */
-BOOL np_encrypt_npdrm(sce_buffer_ctxt_t *ctxt);
+bool np_encrypt_npdrm(sce_buffer_ctxt_t *ctxt);
 
 /*! Create NPDRM control info. */
-BOOL np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp);
+bool np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp);
 
 /*! Add NP signature to file. */
-BOOL np_sign_file(s8 *fname);
+bool np_sign_file(s8 *fname);
 
 #endif

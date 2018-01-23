@@ -38,7 +38,7 @@ void list_destroy(list_t *l)
 	free(l);
 }
 
-BOOL list_isempty(list_t *l)
+bool list_isempty(list_t *l)
 {
 	if(l == NULL)
 		return FALSE;
@@ -56,7 +56,7 @@ u32 list_count(list_t *l)
 	return l->count;
 }
 
-BOOL list_push(list_t *l, void *value)
+bool list_push(list_t *l, void *value)
 {	
 	if(l == NULL)
 		return FALSE;
@@ -96,7 +96,7 @@ void *list_pop(list_t *l)
 	return res;
 }
 
-BOOL list_add_back(list_t *l, void *value)
+bool list_add_back(list_t *l, void *value)
 {	
 	if(l == NULL)
 		return FALSE;
@@ -155,7 +155,7 @@ lnode_t *list_get_node(list_t *l, u32 idx)
 	return iter;
 }
 
-BOOL list_remove_node(list_t *l, lnode_t *node)
+bool list_remove_node(list_t *l, lnode_t *node)
 {	
 	if(l == NULL)
 		return FALSE;
@@ -188,7 +188,7 @@ BOOL list_remove_node(list_t *l, lnode_t *node)
 	return FALSE;
 }
 
-BOOL list_remove_value(list_t *l, void *value)
+bool list_remove_value(list_t *l, void *value)
 {	
 	if(l == NULL)
 		return FALSE;

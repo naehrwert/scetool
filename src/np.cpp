@@ -3,6 +3,7 @@
 * Copyright (c) 2012 by flatz
 * This file is released under the GPLv2.
 */
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <stdlib.h>
 
@@ -46,7 +47,7 @@ void np_set_klicensee(u8 *klicensee)
 	_klicensee_key = klicensee;
 }
 
-BOOL np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt)
+bool np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 {
 	aes_context aes_ctxt;
 	ci_data_npdrm_t *np;
@@ -109,7 +110,7 @@ BOOL np_decrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 	return TRUE;
 }
 
-BOOL np_encrypt_npdrm(sce_buffer_ctxt_t *ctxt)
+bool np_encrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 {
 	aes_context aes_ctxt;
 	keyset_t *ks_np_klic_free, *ks_klic_key;
@@ -151,7 +152,7 @@ BOOL np_encrypt_npdrm(sce_buffer_ctxt_t *ctxt)
 	return TRUE;
 }
 
-BOOL np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp)
+bool np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp)
 {
 	u32 i, len;
 	u8 *cid_fname, ci_key[0x10];
@@ -187,12 +188,7 @@ BOOL np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp)
 	cinp->license_type = _ES32(npconf->license_type);
 	cinp->app_type = _ES32(npconf->app_type);
 	memcpy(cinp->content_id, npconf->content_id, 0x30);
-	#ifdef CONFIG_PRIVATE_BUILD
-		_fill_rand_bytes(cinp->rndpad, 0x10);
-	#else
-		//Better than boring random bytes!
-		memcpy(cinp->rndpad, CONFIG_NPDRM_WATERMARK, 0x10);
-	#endif
+	_fill_rand_bytes(cinp->rndpad, 0x10);
 	cinp->limited_time_start = _ES64(0);
 	cinp->limited_time_end = _ES64(0);
 
@@ -215,7 +211,7 @@ BOOL np_create_ci(npdrm_config_t *npconf, ci_data_npdrm_t *cinp)
 
 //TODO: The fwrite/fread error checking was broken.
 //Maybe the MS runtime is returning the number of bytes written instead of the element count?
-BOOL np_sign_file(s8 *fname)
+bool np_sign_file(s8 *fname)
 {
 	u8 padding_data[0x10] = 
 	{

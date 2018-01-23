@@ -12,30 +12,30 @@
 #include "keys.h"
 
 /*! SELF types. */
-id_to_name_t _self_types[] = 
+id_to_name_t _program_types[] = 
 {
-	{SELF_TYPE_LV0, "lv0"},
-	{SELF_TYPE_LV1, "lv1"},
-	{SELF_TYPE_LV2, "lv2"},
-	{SELF_TYPE_APP, "Application"},
-	{SELF_TYPE_ISO, "Isolated SPU Module"},
-	{SELF_TYPE_LDR, "Secure Loader"},
-	{SELF_TYPE_UNK_7, "Unknown 7"},
-	{SELF_TYPE_NPDRM, "NPDRM Application"},
+	{PROGRAM_TYPE_LV0, "lv0"},
+	{PROGRAM_TYPE_LV1, "lv1"},
+	{PROGRAM_TYPE_LV2, "lv2"},
+	{PROGRAM_TYPE_APP, "Application"},
+	{PROGRAM_TYPE_ISO, "Isolated SPU Module"},
+	{PROGRAM_TYPE_LDR, "Secure Loader"},
+	{PROGRAM_TYPE_UNK_7, "Unknown 7"},
+	{PROGRAM_TYPE_NPDRM, "NPDRM Application"},
 	{0, NULL}
 };
 
 /*! SELF types as parameter. */
-id_to_name_t _self_types_params[] = 
+id_to_name_t _program_types_params[] = 
 {
-	{SELF_TYPE_LV0, "LV0"},
-	{SELF_TYPE_LV1, "LV1"},
-	{SELF_TYPE_LV2, "LV2"},
-	{SELF_TYPE_APP, "APP"},
-	{SELF_TYPE_ISO, "ISO"},
-	{SELF_TYPE_LDR, "LDR"},
-	//{SELF_TYPE_UNK_7, "UNK7"},
-	{SELF_TYPE_NPDRM, "NPDRM"},
+	{PROGRAM_TYPE_LV0, "LV0"},
+	{PROGRAM_TYPE_LV1, "LV1"},
+	{PROGRAM_TYPE_LV2, "LV2"},
+	{PROGRAM_TYPE_APP, "APP"},
+	{PROGRAM_TYPE_ISO, "ISO"},
+	{PROGRAM_TYPE_LDR, "LDR"},
+	//{PROGRAM_TYPE_UNK_7, "UNK7"},
+	{PROGRAM_TYPE_NPDRM, "NPDRM"},
 	{0, NULL}
 };
 
@@ -52,9 +52,7 @@ id_to_name_t _control_info_types[] =
 id_to_name_t _optional_header_types[] = 
 {
 	{OPT_HEADER_TYPE_CAP_FLAGS, "Capability Flags"},
-#ifdef CONFIG_DUMP_INDIV_SEED
 	{OPT_HEADER_TYPE_INDIV_SEED, "Individuals Seed"},
-#endif
 	{0, NULL}
 };
 
@@ -111,6 +109,8 @@ id_to_name_t _auth_ids[] =
 	{0x1070000041000001, "ps1emu"},
 	{0x1070000043000001, "me_iso_spu_module"},
 	{0x1070000046000001, "spu_mode_auth"},
+	{0x1070000047000001, "otheros"},
+	{0x1070000048000001, "ftpd"},
 	{0x107000004C000001, "spu_utoken_processor"},
 	{0x1070000052000001, "sys/internal + vsh/module modules"},
 	{0x1070000055000001, "manu_info_spu_module"},
@@ -208,13 +208,13 @@ id_to_name_t _ph_types[] =
 };
 
 /*! Key types. */
-id_to_name_t _key_types[] = 
+id_to_name_t _key_categories[] = 
 {
-	{KEYTYPE_SELF, "SELF"},
-	{KEYTYPE_RVK, "RVK"},
-	{KEYTYPE_PKG, "PKG"},
-	{KEYTYPE_SPP, "SPP"},
-	{KEYTYPE_OTHER, "OTHER"},
+	{KEYCATEGORY_SELF, "SELF"},
+	{KEYCATEGORY_RVK, "RVK"},
+	{KEYCATEGORY_PKG, "PKG"},
+	{KEYCATEGORY_SPP, "SPP"},
+	{KEYCATEGORY_OTHER, "OTHER"},
 	{0, NULL}
 };
 
@@ -257,12 +257,18 @@ const s8 *_key_revisions[] =
 };
 */
 
-/*! SCE header types. */
-id_to_name_t _sce_header_types[] = 
+/*! Cert file types. */
+id_to_name_t _cert_file_categories[] = 
 {
-	{SCE_HEADER_TYPE_SELF, "SELF"},
-	{SCE_HEADER_TYPE_RVK, "RVK"},
-	{SCE_HEADER_TYPE_PKG, "PKG"},
-	{SCE_HEADER_TYPE_SPP, "SPP"},
+	{CF_CATEGORY_SELF, "SELF"},
+	{CF_CATEGORY_RVK, "RVK"},
+	{CF_CATEGORY_PKG, "PKG"},
+	{CF_CATEGORY_SPP, "SPP"},
+	{0, NULL}
+};
+
+id_to_name_t _sig_algorithms[] = 
+{
+	{SIGNATURE_ALGORITHM_ECDSA, "ECDSA"},
 	{0, NULL}
 };

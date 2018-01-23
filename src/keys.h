@@ -11,11 +11,11 @@
 
 #define KEYBITS(klen) BYTES2BITS(klen)
 
-#define KEYTYPE_SELF 1
-#define KEYTYPE_RVK 2
-#define KEYTYPE_PKG 3
-#define KEYTYPE_SPP 4
-#define KEYTYPE_OTHER 5
+#define KEYCATEGORY_SELF 1
+#define KEYCATEGORY_RVK 2
+#define KEYCATEGORY_PKG 3
+#define KEYCATEGORY_SPP 4
+#define KEYCATEGORY_OTHER 5
 
 /*! Flag to use VSH curve. */
 #define USE_VSH_CURVE 0x40
@@ -48,14 +48,14 @@ typedef struct _keyset
 {
 	/*! Name. */
 	s8 *name;
-	/*! Type. */
-	u32 type;
+	/*! Category. */
+	u32 category;
 	/*! Key revision. */
 	u16 key_revision;
 	/*! Version. */
 	u64 version;
-	/*! SELF type. */
-	u32 self_type;
+	/*! Program type. */
+	u32 program_type;
 	/*! Key length. */
 	u32 erklen;
 	/*! Key. */
@@ -116,20 +116,24 @@ typedef struct _rif
 } rif_t;
 
 void _print_key_list(FILE *fp);
+void _print_internal_key_list(FILE *fp);
 
-BOOL keys_load(const s8 *kfile);
+bool keys_load(const s8 *kfile);
+bool internal_keys_load(const s8 *kfile);
 keyset_t *keyset_find(sce_buffer_ctxt_t *ctxt);
+keyset_t *keyset_bruteforce(sce_buffer_ctxt_t *ctxt);
 keyset_t *keyset_find_by_name(const s8 *name);
 
-BOOL curves_load(const s8 *cfile);
+bool curves_load(const s8 *cfile);
 curve_t *curve_find(u8 ctype);
 
-BOOL vsh_curves_load(const s8 *cfile);
+bool vsh_curves_load(const s8 *cfile);
 curve_t *vsh_curve_find(u8 ctype);
 
-BOOL klicensee_by_content_id(const s8 *content_id, u8 *klicensee);
-BOOL dev_klicensee_by_content_id(const s8 *content_id, u8 *klicensee);
+bool klicensee_by_content_id(const s8 *content_id, u8 *klicensee);
+bool dev_klicensee_by_content_id(const s8 *content_id, u8 *klicensee);
 
 keyset_t *keyset_from_buffer(u8 *keyset);
+keyset_t *get_used_keyset();
 
 #endif

@@ -2,6 +2,7 @@
 * Copyright (c) 2011-2013 by naehrwert
 * This file is released under the GPLv2.
 */
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,20 +37,20 @@
 #define ARG_OPT optional_argument
 
 /*! Verbose mode. */
-BOOL _verbose = FALSE;
+bool _verbose = FALSE;
 /*! Raw mode. */
-BOOL _raw = FALSE;
+bool _raw = FALSE;
 
 /*! We got work. */
-static BOOL _got_work = FALSE;
+static bool _got_work = FALSE;
 /*! List keys. */
-static BOOL _list_keys = FALSE;
+static bool _list_keys = FALSE;
 /*! Print infos on file. */
-static BOOL _print_info = FALSE;
+static bool _print_info = FALSE;
 /*! Decrypt file. */
-static BOOL _decrypt_file = FALSE;
+static bool _decrypt_file = FALSE;
 /*! Encrypt file. */
-static BOOL _encrypt_file = FALSE;
+static bool _encrypt_file = FALSE;
 
 /*! Parameters. */
 s8 *_template = NULL;
@@ -61,15 +62,13 @@ s8 *_meta_info = NULL;
 s8 *_keyset = NULL;
 s8 *_auth_id = NULL;
 s8 *_vendor_id = NULL;
-s8 *_self_type = NULL;
+s8 *_program_type = NULL;
 s8 *_app_version = NULL;
 s8 *_fw_version = NULL;
 s8 *_add_shdrs = NULL;
 s8 *_ctrl_flags = NULL;
 s8 *_cap_flags = NULL;
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 s8 *_indiv_seed = NULL;
-#endif
 s8 *_license_type = NULL;
 s8 *_app_type = NULL;
 s8 *_content_id = NULL;
@@ -84,7 +83,7 @@ static s8 *_file_out = NULL;
 
 /*! Long option values. */
 #define VAL_TEMPLATE 't'
-#define VAL_FILE_TYPE '0'
+#define VAL_FILE_CATEGORY '0'
 #define VAL_COMPRESS_DATA '1'
 #define VAL_SKIP_SECTIONS 's'
 #define VAL_KEY_REV '2'
@@ -92,15 +91,13 @@ static s8 *_file_out = NULL;
 #define VAL_KEYSET 'K'
 #define VAL_AUTH_ID '3'
 #define VAL_VENDOR_ID '4'
-#define VAL_SELF_TYPE '5'
+#define VAL_PROGRAM_TYPE '5'
 #define VAL_APP_VERSION 'A'
 #define VAL_FW_VERSION '6'
 #define VAL_ADD_SHDRS '7'
 #define VAL_CTRL_FLAGS '8'
 #define VAL_CAP_FLAGS '9'
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 #define VAL_INDIV_SEED 'a'
-#endif
 #define VAL_LICENSE_TYPE 'b'
 #define VAL_APP_TYPE 'c'
 #define VAL_CONTENT_ID 'f'
@@ -118,23 +115,21 @@ static struct option options[] =
 	{"verbose", ARG_NONE, NULL, 'v'},
 	{"raw", ARG_NONE, NULL, 'r'},
 	{"template", ARG_REQ, NULL, VAL_TEMPLATE},
-	{"sce-type", ARG_REQ, NULL, VAL_FILE_TYPE},
+	{"category", ARG_REQ, NULL, VAL_FILE_CATEGORY},
 	{"compress-data", ARG_REQ, NULL, VAL_COMPRESS_DATA},
 	{"skip-sections", ARG_REQ, NULL, VAL_SKIP_SECTIONS},
 	{"key-revision", ARG_REQ, NULL, VAL_KEY_REV},
 	{"meta-info", ARG_REQ, NULL, VAL_META_INFO},
 	{"keyset", ARG_REQ, NULL, VAL_KEYSET},
-	{"self-auth-id", ARG_REQ, NULL, VAL_AUTH_ID},
-	{"self-vendor-id", ARG_REQ, NULL, VAL_VENDOR_ID},
-	{"self-type", ARG_REQ, NULL, VAL_SELF_TYPE},
+	{"program-auth-id", ARG_REQ, NULL, VAL_AUTH_ID},
+	{"program-vendor-id", ARG_REQ, NULL, VAL_VENDOR_ID},
+	{"program-type", ARG_REQ, NULL, VAL_PROGRAM_TYPE},
 	{"self-app-version", ARG_REQ, NULL, VAL_APP_VERSION},
 	{"self-fw-version", ARG_REQ, NULL, VAL_FW_VERSION},
 	{"self-add-shdrs", ARG_REQ, NULL, VAL_ADD_SHDRS},
 	{"self-ctrl-flags", ARG_REQ, NULL, VAL_CTRL_FLAGS},
 	{"self-cap-flags", ARG_REQ, NULL, VAL_CAP_FLAGS},
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 	{"self-indiv-seed", ARG_REQ, NULL, VAL_INDIV_SEED},
-#endif
 	{"np-license-type", ARG_REQ, NULL, VAL_LICENSE_TYPE},
 	{"np-app-type", ARG_REQ, NULL, VAL_APP_TYPE},
 	{"np-content-id", ARG_REQ, NULL, VAL_CONTENT_ID},
@@ -158,41 +153,39 @@ static void print_usage()
 	print_version();
 
 	printf("USAGE: scetool [options] command\n");
-	printf("COMMANDS                Parameters            Explanation\n");
-	printf(" -h, --help                                   Print this help.\n");
-	printf(" -k, --print-keys                             List keys.\n");
-	printf(" -i, --print-infos      File-in               Print SCE file info.\n");
-	printf(" -d, --decrypt          File-in File-out      Decrypt/dump SCE file.\n");
-	printf(" -e, --encrypt          File-in File-out      Encrypt/create SCE file.\n");
-	printf("OPTIONS                 Possible Values       Explanation\n");
-	printf(" -v, --verbose                                Enable verbose output.\n");
-	printf(" -r, --raw                                    Enable raw value output.\n");
-	printf(" -t, --template         File-in               Template file (SELF only)\n");
-	printf(" -0, --sce-type         SELF/RVK/PKG/SPP      SCE File Type\n");
-	printf(" -1, --compress-data    TRUE/FALSE(default)   Whether to compress data or not.\n");
-	printf(" -s, --skip-sections    TRUE(default)/FALSE   Whether to skip sections or not.\n");
-	printf(" -2, --key-revision     e.g. 00,01,...,0A,... Key Revision\n");
-	printf(" -m, --meta-info        64 bytes              Use provided meta info to decrypt.\n");
-	printf(" -K, --keyset           32(Key)16(IV)\n");
-	printf("                        40(Pub)21(Priv)1(CT)  Override keyset.\n");
-	printf(" -3, --self-auth-id     e.g. 1010000001000003 Authentication ID\n");
-	printf(" -4, --self-vendor-id   e.g. 01000002         Vendor ID\n");
-	printf(" -5, --self-type        LV0/LV1/LV2/APP/ISO/\n");
-	printf("                        LDR/NPDRM             SELF Type\n");
-	printf(" -A, --self-app-version e.g. 0001000000000000 Application Version\n");
-	printf(" -6, --self-fw-version  e.g. 0003004100000000 Firmware Version\n");
-	printf(" -7, --self-add-shdrs   TRUE(default)/FALSE   Whether to add ELF shdrs or not.\n");
-	printf(" -8, --self-ctrl-flags  32 bytes              Override control flags.\n");
-	printf(" -9, --self-cap-flags   32 bytes              Override capability flags.\n");
-#ifdef CONFIG_CUSTOM_INDIV_SEED
-	printf(" -a, --self-indiv-seed  256 bytes             Individuals Seed (ISO only)\n");
-#endif
-	printf(" -b, --np-license-type  LOCAL/FREE            License Type\n");
-	printf(" -c, --np-app-type      SPRX/EXEC/USPRX/UEXEC App Type (U* for updates)\n");
-	printf(" -f, --np-content-id                          Content ID\n");
-	printf(" -l, --np-klicensee     16 bytes              Override klicensee.\n");
-	printf(" -g, --np-real-fname    e.g. EBOOT.BIN        Real Filename\n");
-	printf(" -j, --np-add-sig       TRUE/FALSE(default)   Whether to add a NP sig. or not.\n");
+	printf("COMMANDS                 Parameters            Explanation\n");
+	printf(" -h, --help                                    Print this help.\n");
+	printf(" -k, --print-keys                              List keys.\n");
+	printf(" -i, --print-infos       File-in               Print SCE file info.\n");
+	printf(" -d, --decrypt           File-in File-out      Decrypt/dump SCE file.\n");
+	printf(" -e, --encrypt           File-in File-out      Encrypt/create SCE file.\n");
+	printf("OPTIONS                  Possible Values       Explanation\n");
+	printf(" -v, --verbose                                 Enable verbose output.\n");
+	printf(" -r, --raw                                     Enable raw value output.\n");
+	printf(" -t, --template          File-in               Template file (SELF only)\n");
+	printf(" -0, --category          SELF/RVK/PKG/SPP      SCE File Type\n");
+	printf(" -1, --compress-data     TRUE/FALSE(default)   Whether to compress data or not.\n");
+	printf(" -s, --skip-sections     TRUE(default)/FALSE   Whether to skip sections or not.\n");
+	printf(" -2, --key-revision      e.g. 00,01,...,0A,... Key Revision\n");
+	printf(" -m, --meta-info         64 bytes              Use provided meta info to decrypt.\n");
+	printf(" -K, --keyset            32(Key)16(IV)\n");
+	printf("                         40(Pub)21(Priv)1(CT)  Override keyset.\n");
+	printf(" -3, --program-auth-id   e.g. 1010000001000003 Authentication ID\n");
+	printf(" -4, --program-vendor-id e.g. 01000002         Vendor ID\n");
+	printf(" -5, --program-type      LV0/LV1/LV2/APP/ISO/\n");
+	printf("                         LDR/NPDRM             Program Type\n");
+	printf(" -A, --self-app-version  e.g. 0001000000000000 Application Version\n");
+	printf(" -6, --self-fw-version   e.g. 0003004100000000 Firmware Version\n");
+	printf(" -7, --self-add-shdrs    TRUE(default)/FALSE   Whether to add ELF shdrs or not.\n");
+	printf(" -8, --self-ctrl-flags   32 bytes              Override control flags.\n");
+	printf(" -9, --self-cap-flags    32 bytes              Override capability flags.\n");
+	printf(" -a, --self-indiv-seed   256 bytes             Individuals Seed (ISO only)\n");
+	printf(" -b, --np-license-type   LOCAL/FREE            License Type\n");
+	printf(" -c, --np-app-type       SPRX/EXEC/USPRX/UEXEC App Type (U* for updates)\n");
+	printf(" -f, --np-content-id                           Content ID\n");
+	printf(" -l, --np-klicensee      16 bytes              Override klicensee.\n");
+	printf(" -g, --np-real-fname     e.g. EBOOT.BIN        Real Filename\n");
+	printf(" -j, --np-add-sig        TRUE/FALSE(default)   Whether to add a NP sig. or not.\n");
 
 	//getchar();
 
@@ -203,11 +196,7 @@ static void parse_args(int argc, char **argv)
 {
 	char c;
 
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 	while((c = getopt_long(argc, argv, "hki:d:e:vrt:0:1:s:2:m:K:3:4:5:A:6:7:8:9:a:b:c:f:l:g:j:", options, NULL)) != -1)
-#else
-	while((c = getopt_long(argc, argv, "hki:d:e:vrt:0:1:s:2:m:K:3:4:5:A:6:7:8:9:b:c:f:l:g:j:", options, NULL)) != -1)
-#endif
 	{
 		switch(c)
 		{
@@ -250,7 +239,7 @@ static void parse_args(int argc, char **argv)
 		case VAL_TEMPLATE:
 			_template = optarg;
 			break;
-		case VAL_FILE_TYPE:
+		case VAL_FILE_CATEGORY:
 			_file_type = optarg;
 			break;
 		case VAL_COMPRESS_DATA:
@@ -274,8 +263,8 @@ static void parse_args(int argc, char **argv)
 		case VAL_VENDOR_ID:
 			_vendor_id = optarg;
 			break;
-		case VAL_SELF_TYPE:
-			_self_type = optarg;
+		case VAL_PROGRAM_TYPE:
+			_program_type = optarg;
 			break;
 		case VAL_APP_VERSION:
 			_app_version = optarg;
@@ -292,11 +281,9 @@ static void parse_args(int argc, char **argv)
 		case VAL_CAP_FLAGS:
 			_cap_flags = optarg;
 			break;
-#ifdef CONFIG_CUSTOM_INDIV_SEED
 		case VAL_INDIV_SEED:
 			_indiv_seed = optarg;
 			break;
-#endif
 		case VAL_LICENSE_TYPE:
 			_license_type = optarg;
 			break;
@@ -394,8 +381,33 @@ int main(int argc, char **argv)
 		else
 			printf("[*] Warning: Could not load keys.\n");
 	}
+	
+	//Load internal keysets.
+	if(ps3 != NULL)
+	{
+		sprintf(path, "%s/%s", ps3, CONFIG_INTERNAL_KEYS_FILE);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s", CONFIG_KEYS_PATH, CONFIG_INTERNAL_KEYS_FILE);
+		if(access(path, 0) != 0)
+			sprintf(path, "%s/%s/%s", ps3, CONFIG_KEYS_PATH, CONFIG_INTERNAL_KEYS_FILE);
+	}
+	else
+		sprintf(path, "%s/%s", CONFIG_KEYS_PATH, CONFIG_INTERNAL_KEYS_FILE);
+	if(internal_keys_load(path) == TRUE)
+		_LOG_VERBOSE("Loaded internal keysets.\n");
+	else
+	{
+		if(_list_keys == TRUE)
+		{
+			printf("[*] Error: Could not load internal keys.\n");
+			return 0;
+		}
+		else
+			printf("[*] Warning: Could not load internal keys.\n");
+	}
+	
 
-	//Load curves.
+	//Load loader curves.
 	if(ps3 != NULL)
 	{
 		sprintf(path, "%s/%s", ps3, CONFIG_CURVES_FILE);
@@ -411,7 +423,7 @@ int main(int argc, char **argv)
 	else
 		printf("[*] Warning: Could not load loader curves.\n");
 
-	//Load curves.
+	//Load vsh curves.
 	if(ps3 != NULL)
 	{
 		sprintf(path, "%s/%s", ps3, CONFIG_VSH_CURVES_FILE);
@@ -442,6 +454,8 @@ int main(int argc, char **argv)
 	{
 		printf("[*] Loaded keysets:\n");
 		_print_key_list(stdout);
+		printf("[*] Loaded internal keysets:\n");
+		_print_internal_key_list(stdout);
 	}
 	else if(_print_info)
 		frontend_print_infos(_file_in);

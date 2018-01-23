@@ -24,14 +24,14 @@ typedef struct _list
 
 list_t *list_create();
 void list_destroy(list_t *l);
-BOOL list_isempty(list_t *l);
+bool list_isempty(list_t *l);
 u32 list_count(list_t *l);
-BOOL list_push(list_t *l, void *value);
+bool list_push(list_t *l, void *value);
 void *list_pop(list_t *l);
-BOOL list_add_back(list_t *l, void *value);
+bool list_add_back(list_t *l, void *value);
 void *list_get(list_t *l, u32 idx);
 lnode_t *list_get_node(list_t *l, u32 idx);
-BOOL list_remove_node(list_t *l, lnode_t *node);
-BOOL list_remove_value(list_t *l, void *value);
+bool list_remove_node(list_t *l, lnode_t *node);
+bool list_remove_value(list_t *l, void *value);
 
 #endif

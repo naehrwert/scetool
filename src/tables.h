@@ -10,10 +10,10 @@
 #include "util.h"
 
 /*! SELF types. */
-extern id_to_name_t _self_types[];
+extern id_to_name_t _program_types[];
 
 /*! SELF types as parameter. */
-extern id_to_name_t _self_types_params[];
+extern id_to_name_t _program_types_params[];
 
 /* Control info types. */
 extern id_to_name_t _control_info_types[];
@@ -46,12 +46,15 @@ extern id_to_name_t _sh_types[];
 extern id_to_name_t _ph_types[];
 
 /*! Key types. */
-extern id_to_name_t _key_types[];
+extern id_to_name_t _key_categories[];
 
 /*! Key revisions. */
 //extern const s8 *_key_revisions[];
 
-/*! SCE header types. */
-extern id_to_name_t _sce_header_types[];
+/*! Cert file types. */
+extern id_to_name_t _cert_file_categories[];
+
+/*! Signature algorithms. */
+extern id_to_name_t _sig_algorithms[];
 
 #endif

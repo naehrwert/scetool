@@ -58,7 +58,7 @@ static inline void _es_rvk_header(rvk_header_t *h)
 /*! Program revoke list entry. */
 typedef struct _prg_rvk_entry
 {
-	u32 self_type; //3, 4
+	u32 program_type; //3, 4
 	u32 check_type;
 	u64 version;
 	union
@@ -71,7 +71,7 @@ typedef struct _prg_rvk_entry
 
 static inline void _es_prg_rvk_entry(prg_rvk_entry_t *e)
 {
-	e->self_type = _ES32(e->self_type);
+	e->program_type = _ES32(e->program_type);
 	e->check_type = _ES32(e->check_type);
 	e->version = _ES64(e->version);
 	e->auth_id = _ES64(e->auth_id);

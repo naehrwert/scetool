@@ -11,7 +11,7 @@
 #include "types.h"
 
 /*! Verbose. */
-extern BOOL _verbose;
+extern bool _verbose;
 #define _LOG_VERBOSE(...) _IF_VERBOSE(printf("[*] " __VA_ARGS__))
 #define _IF_VERBOSE(code) \
 	do \
@@ -23,7 +23,7 @@ extern BOOL _verbose;
 	} while(0)
 
 /*! Raw. */
-extern BOOL _raw;
+extern bool _raw;
 #define _PRINT_RAW(fp, ...) _IF_RAW(fprintf(fp, __VA_ARGS__))
 #define _IF_RAW(code) \
 	do \
@@ -42,7 +42,7 @@ typedef struct _id_to_name
 } id_to_name_t;
 
 /*! Utility functions. */
-void _hexdump(FILE *fp, const char *name, u32 offset, u8 *buf, int len, BOOL print_addr);
+void _hexdump(FILE *fp, const char *name, u32 offset, u8 *buf, int len, bool print_addr);
 void _print_align(FILE *fp, const s8 *str, s32 align, s32 len);
 u8 *_read_buffer(const s8 *file, u32 *length);
 int _write_buffer(const s8 *file, u8 *buffer, u32 length);
