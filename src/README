@@ -13,7 +13,7 @@ NP local license handling (C) 2012 by flatz
 
 ==> Keyfile Format <==
  [keyname]
- type={SELF, RVK, PKG, SPP, OTHER}
+ category={SELF, RVK, PKG, SPP, OTHER}
  revision={00, ..., 18, 8000}
  version={..., 0001000000000000, ...}
  program_type={LV0, LV1, LV2, APP, ISO, LDR, UNK_7, NPDRM}
@@ -26,7 +26,7 @@ NP local license handling (C) 2012 by flatz
 
 ==> Keyset Example <==
  [metldr]
- type=SELF
+ category=SELF
  revision=00
  program_type=LDR
  erk=0000000000000000000000000000000000000000000000000000000000000000
