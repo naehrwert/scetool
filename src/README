@@ -44,6 +44,12 @@ NP local license handling (C) 2012 by flatz
  - [NP_rif_key]: rif key.
  - [NP_sig]: Footer signature ECDSA keyset.
 
+==> NPDRM ReActPsn Key(set) Names <==
+ - [NP_rap_initial]: RAP initial aes decryption key.
+ - [NP_rap_pbox]: RAP permutation box constant.
+ - [NP_rap_e1] RAP e1 constant.
+ - [NP_rap_e2] RAP e2 constant.
+
 ==> Override Keyset <==
  It should be a single hex-string consisting of: 
  32 bytes (Key) 16 bytes (IV) 40 bytes (Pub) 21 bytes (Priv) 1 byte (CType).
