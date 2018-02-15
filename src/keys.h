@@ -86,10 +86,10 @@ typedef struct _curve
 /*! VSH Curve entry. */
 typedef struct _vsh_curve
 {
+	u8 p[20];
 	u8 a[20];
 	u8 b[20];
 	u8 N[20];
-	u8 p[20];
 	u8 Gx[20];
 	u8 Gy[20];
 } vsh_curve_t;

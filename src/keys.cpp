@@ -739,13 +739,13 @@ curve_t *vsh_curve_find(u8 ctype)
 	if(ctype > VSH_CTYPE_MAX)
 		return NULL;
 
-	_memcpy_inv(_tmp_curve.p, _vsh_curves[ctype].p, 20);
-	_memcpy_inv(_tmp_curve.a, _vsh_curves[ctype].a, 20);
-	_memcpy_inv(_tmp_curve.b, _vsh_curves[ctype].b, 20);
+	memcpy(_tmp_curve.p, _vsh_curves[ctype].p, 20);
+	memcpy(_tmp_curve.a, _vsh_curves[ctype].a, 20);
+	memcpy(_tmp_curve.b, _vsh_curves[ctype].b, 20);
 	_tmp_curve.N[0] = ~0x00;
-	_memcpy_inv(_tmp_curve.N+1, _vsh_curves[ctype].N, 20);
-	_memcpy_inv(_tmp_curve.Gx, _vsh_curves[ctype].Gx, 20);
-	_memcpy_inv(_tmp_curve.Gy, _vsh_curves[ctype].Gx, 20);
+	memcpy(_tmp_curve.N+1, _vsh_curves[ctype].N, 20);
+	memcpy(_tmp_curve.Gx, _vsh_curves[ctype].Gx, 20);
+	memcpy(_tmp_curve.Gy, _vsh_curves[ctype].Gy, 20);
 
 	return &_tmp_curve;
 }
@@ -944,10 +944,8 @@ static bool rap_to_klicensee(const s8 *content_id, u8 *klicensee)
 				o = kc < ec2 ? 1 : 0;
 				rap[p] = kc - ec2;
 			}
-			else if (kc == 0xFF)
-				rap[p] = kc - ec2;
 			else
-				rap[p] = kc;
+				rap[p] = kc - ec2;
 		}
 	}
 
