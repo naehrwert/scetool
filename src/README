@@ -91,6 +91,10 @@ OPTIONS                 Possible Values       Explanation
  -j, --np-add-sig       TRUE/FALSE(default)   Whether to add a NP sig. or not.
 
 ==> History <==
+
+Version 0.3.1
+- Updated Program Authority IDs.
+- Fixed Vsh Curve loader.
 Version 0.3.0
 - Added Internal keys support.
 - Added Signed Elf ver.2 decryption support.
