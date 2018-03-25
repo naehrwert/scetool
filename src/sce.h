@@ -81,8 +81,8 @@
 #define OPT_HEADER_TYPE_CAP_FLAGS 1
 /*! Individuals seed header. */
 #define OPT_HEADER_TYPE_INDIV_SEED 2
-/*! Optional header 4. */
-#define OPT_HEADER_TYPE_4 4
+/*! Control flags header 4. */
+#define OPT_HEADER_TYPE_CONTROL_FLAGS 4
 
 /*! Metadata key/iv lengths. */
 #define METADATA_INFO_KEYBITS 128

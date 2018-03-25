@@ -53,6 +53,7 @@ id_to_name_t _optional_header_types[] =
 {
 	{OPT_HEADER_TYPE_CAP_FLAGS, "Capability Flags"},
 	{OPT_HEADER_TYPE_INDIV_SEED, "Individuals Seed"},
+	{OPT_HEADER_TYPE_CONTROL_FLAGS, "Control Flags"},
 	{0, NULL}
 };
 

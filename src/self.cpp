@@ -317,7 +317,7 @@ void _print_opt_header(FILE *fp, opt_header_t *oh)
 			else
 			{
 				u8 *h1 = (u8 *)oh + sizeof(opt_header_t);
-				_hexdump(fp, " Data", 0, h1, _ES32(oh->size) - sizeof(opt_header_t), FALSE);
+				_hexdump(fp, " Flags", 0, h1, _ES32(oh->size) - sizeof(opt_header_t), FALSE);
 			}
 		}
 		break;
@@ -327,10 +327,10 @@ void _print_opt_header(FILE *fp, opt_header_t *oh)
 			_hexdump(fp, " Seed", 0, is, _ES32(oh->size) - sizeof(opt_header_t), FALSE);
 		}
 		break;
-	case OPT_HEADER_TYPE_4:
+	case OPT_HEADER_TYPE_CONTROL_FLAGS:
 		{
-			u8 *h4 = (u8 *)oh + sizeof(opt_header_t);
-			_hexdump(fp, " Data", 0, h4, _ES32(oh->size) - sizeof(opt_header_t), FALSE);
+			u8 *ctrlf = (u8 *)oh + sizeof(opt_header_t);
+			_hexdump(fp, " Flags", 0, ctrlf, _ES32(oh->size) - sizeof(opt_header_t), FALSE);
 		}
 		break;
 	}
