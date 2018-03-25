@@ -105,6 +105,12 @@ void _print_app_info(FILE *fp, app_info_t *ai)
 	}
 	else
 		fprintf(fp, " Vendor-ID 0x%08X\n", _ES32(ai->vendor_id));
+	
+	vendor_id_t *vendor = (vendor_id_t*)(&ai->vendor_id);
+	_PRINT_RAW(fp, " Territory 0x%02x\n", (vendor->territory));
+	//_PRINT_RAW(fp, " unknown_1 0x%02x\n", (vendor->unknown_1));
+	//_PRINT_RAW(fp, " unknown_2 0x%02x\n", (vendor->unknown_2));
+	_PRINT_RAW(fp, " Gos-id    0x%02x\n", (vendor->gos_id));
 
 	name = _get_name(_program_types, _ES32(ai->program_type));
 	if(name != NULL)

@@ -326,6 +326,16 @@ typedef struct _app_info
 	u64 padding;
 } app_info_t;
 
+/*! Vender ID. */
+typedef struct _vendor_id
+{
+	u8 territory;
+	u8 unknown_1;
+	u8 unknown_2;
+	u8 gos_id;
+} vendor_id_t;
+
+
 /*! Control info. */
 typedef struct _control_info
 {
