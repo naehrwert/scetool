@@ -296,27 +296,41 @@ void _print_opt_header(FILE *fp, opt_header_t *oh)
 	{
 	case OPT_HEADER_TYPE_CAP_FLAGS:
 		{
-			oh_data_cap_flags_t *cf = (oh_data_cap_flags_t *)((u8 *)oh + sizeof(opt_header_t));
+			if (_ES32(oh->size) == 0x30)
+			{
+				oh_data_cap_flags_t *cf = (oh_data_cap_flags_t *)((u8 *)oh + sizeof(opt_header_t));
 
-			_IF_RAW(_hexdump(fp, " Flags", 0, (u8 *)cf, sizeof(oh_data_cap_flags_t), FALSE));
+				_IF_RAW(_hexdump(fp, " Flags", 0, (u8 *)cf, sizeof(oh_data_cap_flags_t), FALSE));
 
-		//	_es_oh_data_cap_flags(cf);
+			//	_es_oh_data_cap_flags(cf);
 
-			fprintf(fp, " unknown_3 0x%016llX\n", _ES64(cf->unk3));
-			fprintf(fp, " unknown_4 0x%016llX\n", _ES64(cf->unk4));
+				fprintf(fp, " unknown_3 0x%016llX\n", _ES64(cf->unk3));
+				fprintf(fp, " unknown_4 0x%016llX\n", _ES64(cf->unk4));
 
-			fprintf(fp, " Flags     0x%016llX [ ", _ES64(cf->flags));
-			_print_cap_flags_flags(fp, cf);
-			fprintf(fp, "]\n");
+				fprintf(fp, " Flags     0x%016llX [ ", _ES64(cf->flags));
+				_print_cap_flags_flags(fp, cf);
+				fprintf(fp, "]\n");
 
-			fprintf(fp, " unknown_6 0x%08X\n", _ES32(cf->unk6));
-			fprintf(fp, " unknown_7 0x%08X\n", _ES32(cf->unk7));
+				fprintf(fp, " unknown_6 0x%08X\n", _ES32(cf->unk6));
+				fprintf(fp, " unknown_7 0x%08X\n", _ES32(cf->unk7));
+			}
+			else
+			{
+				u8 *h1 = (u8 *)oh + sizeof(opt_header_t);
+				_hexdump(fp, " Data", 0, h1, _ES32(oh->size) - sizeof(opt_header_t), FALSE);
+			}
 		}
 		break;
 	case OPT_HEADER_TYPE_INDIV_SEED:
 		{
 			u8 *is = (u8 *)oh + sizeof(opt_header_t);
 			_hexdump(fp, " Seed", 0, is, _ES32(oh->size) - sizeof(opt_header_t), FALSE);
+		}
+		break;
+	case OPT_HEADER_TYPE_4:
+		{
+			u8 *h4 = (u8 *)oh + sizeof(opt_header_t);
+			_hexdump(fp, " Data", 0, h4, _ES32(oh->size) - sizeof(opt_header_t), FALSE);
 		}
 		break;
 	}

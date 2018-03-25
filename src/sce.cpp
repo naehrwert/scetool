@@ -57,7 +57,9 @@ void _print_metadata_info(FILE *fp, metadata_info_t *mi)
 {
 	fprintf(fp, "[*] Encryption Root Header:\n");
 	_hexdump(fp, " Key", 0, mi->key, METADATA_INFO_KEY_LEN, FALSE);
+	_hexdump(fp, "    ", 0, mi->key_pad, METADATA_INFO_KEY_LEN, FALSE);
 	_hexdump(fp, " IV ", 0, mi->iv, METADATA_INFO_IV_LEN, FALSE);
+	_hexdump(fp, "    ", 0, mi->iv_pad, METADATA_INFO_IV_LEN, FALSE);
 }
 
 void _print_metadata_header(FILE *fp, metadata_header_t *mh)
