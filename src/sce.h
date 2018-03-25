@@ -118,9 +118,9 @@
 #define SIGNATURE_R_SIZE 21
 
 /*! Compressed. */
-#define SECTION_INFO_COMPRESSED 2
+#define SEGMENT_INFO_COMPRESSED 2
 /*! Not compressed. */
-#define SECTION_INFO_NOT_COMPRESSED 1
+#define SEGMENT_INFO_NOT_COMPRESSED 1
 
 /*! SCE version not present. */
 #define SCE_VERSION_NOT_PRESENT 0
@@ -192,8 +192,8 @@ typedef struct _self_header
 	u64 phdr_offset;
 	/*! Section headers offset. */
 	u64 shdr_offset;
-	/*! Section info offset. */
-	u64 section_info_offset;
+	/*! Segment info offset. */
+	u64 segment_info_offset;
 	/*! SCE version offset. */
 	u64 sce_version_offset;
 	/*! Control info offset. */
@@ -266,8 +266,8 @@ typedef struct _signature
 	u8 padding[6];
 } signature_t;
 
-/*! Section info. */
-typedef struct _section_info
+/*! Segment info. */
+typedef struct _segment_info
 {
 	u64 offset;
 	u64 size;
@@ -275,7 +275,7 @@ typedef struct _section_info
 	u32 unknown_0;
 	u32 unknown_1;
 	u32 encrypted;
-} section_info_t;
+} segment_info_t;
 
 /*! SCE version. */
 typedef struct _sce_version
@@ -498,7 +498,7 @@ typedef struct _sce_buffer_ctxt
 			/*! Program info. */
 			app_info_t *ai;
 			/*! Section info. */
-			section_info_t *si;
+			segment_info_t *si;
 			/*! SCE version. */
 			sce_version_t *sv;
 			/*! Control infos. */
@@ -538,7 +538,7 @@ typedef struct _sce_buffer_ctxt
 			u32 off_ehdr;
 			/*! Program header offset. */
 			u32 off_phdr;
-			/*! Section info offset. */
+			/*! Segment info offset. */
 			u32 off_si;
 			/*! SCE version offset. */
 			u32 off_sv;

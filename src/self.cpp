@@ -54,11 +54,29 @@ void _print_self_header(FILE *fp, self_header_t *h)
 	fprintf(fp, " Program Info Offset 0x%016llX\n", _ES64(h->app_info_offset));
 	fprintf(fp, " ELF Offset          0x%016llX\n", _ES64(h->elf_offset));
 	fprintf(fp, " PH Offset           0x%016llX\n", _ES64(h->phdr_offset));
-	fprintf(fp, " SH Offset           0x%016llX\n", _ES64(h->shdr_offset));
-	fprintf(fp, " Section Info Offset 0x%016llX\n", _ES64(h->section_info_offset));
-	fprintf(fp, " SCE Version Offset  0x%016llX\n", _ES64(h->sce_version_offset));
-	fprintf(fp, " Control Info Offset 0x%016llX\n", _ES64(h->control_info_offset));
-	fprintf(fp, " Control Info Size   0x%016llX\n", _ES64(h->control_info_size));
+	
+	if ((_ES64(h->shdr_offset)) != 0)
+		fprintf(fp, " SH Offset           0x%016llX\n", _ES64(h->shdr_offset));
+	else
+		fprintf(fp, " SH Offset           N\\A\n");
+	
+	fprintf(fp, " Segment Info Offset 0x%016llX\n", _ES64(h->segment_info_offset));
+	
+	if ((_ES64(h->sce_version_offset)) != 0)
+		fprintf(fp, " SCE Version Offset  0x%016llX\n", _ES64(h->sce_version_offset));
+	else
+		fprintf(fp, " SCE Version Offset  N\\A\n");
+
+	if ((_ES64(h->control_info_offset)) != 0)
+	{
+		fprintf(fp, " Control Info Offset 0x%016llX\n", _ES64(h->control_info_offset));
+		fprintf(fp, " Control Info Size   0x%016llX\n", _ES64(h->control_info_size));
+	}
+	else
+	{
+		fprintf(fp, " Control Info Offset N\\A\n");
+		fprintf(fp, " Control Info Size   N\\A\n");
+	}
 	//fprintf(fp, " padding             0x%016llX\n", _ES64(h->padding));
 }
 
@@ -103,13 +121,25 @@ void _print_app_info(FILE *fp, app_info_t *ai)
 	//fprintf(fp, " padding   0x%016llX\n", _ES64(ai->padding));
 }
 
-void _print_section_info_header(FILE *fp)
+void _print_segment_info_header_2(FILE *fp)
 {
-	fprintf(fp, "[*] Section Infos:\n");
+	fprintf(fp, "[*] Segment Infos:\n");
+	fprintf(fp, " Idx Offset   Size\n");
+}
+
+void _print_segment_info_header_3(FILE *fp)
+{
+	fprintf(fp, "[*] Segment Infos:\n");
 	fprintf(fp, " Idx Offset   Size     Compressed unk0     unk1     Encrypted\n");
 }
 
-void _print_section_info(FILE *fp, section_info_t *si, u32 idx)
+void _print_segment_info_2(FILE *fp, segment_info_t *si, u32 idx)
+{
+	fprintf(fp, " %03d %08X %08X\n", 
+		idx, (u32)_ES64(si->offset), (u32)_ES64(si->size));
+}
+
+void _print_segment_info_3(FILE *fp, segment_info_t *si, u32 idx)
 {
 	fprintf(fp, " %03d %08X %08X %s      %08X %08X %s\n", 
 		idx, (u32)_ES64(si->offset), (u32)_ES64(si->size), _ES32(si->compressed) == 2 ? "[YES]" : "[NO ]", 
@@ -481,10 +511,22 @@ bool self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 		//32 bit ELF.
 		Elf32_Ehdr *eh = (Elf32_Ehdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->elf_offset));
 
-		//Print section infos.
-		_print_section_info_header(fp);
+		//Print segment infos.
+		
+		
+		if (_ES64(ctxt->self.selfh->header_type) == 3)
+			_print_segment_info_header_3(fp);
+		else
+			_print_segment_info_header_2(fp);
+		
 		for(i = 0; i < _ES16(eh->e_phnum); i++)
-			_print_section_info(fp, &ctxt->self.si[i], i);
+		{
+			if (_ES64(ctxt->self.selfh->header_type) == 3)
+				_print_segment_info_3(fp, &ctxt->self.si[i], i);
+			else
+				_print_segment_info_2(fp, &ctxt->self.si[i], i);
+		}
+			
 
 		//Print ELF header.
 		_print_elf32_ehdr(fp, eh);
@@ -511,12 +553,21 @@ bool self_print_info(FILE *fp, sce_buffer_ctxt_t *ctxt)
 		//64 bit ELF.
 		Elf64_Ehdr *eh = (Elf64_Ehdr *)(ctxt->scebuffer + _ES64(ctxt->self.selfh->elf_offset));
 
-		//Print section infos.
+		//Print segment infos.
 		if(ctxt->self.si != NULL)
 		{
-			_print_section_info_header(fp);
+			if (_ES64(ctxt->self.selfh->header_type) == 3)
+				_print_segment_info_header_3(fp);
+			else
+				_print_segment_info_header_2(fp);
+			
 			for(i = 0; i < _ES16(eh->e_phnum); i++)
-				_print_section_info(fp, &ctxt->self.si[i], i);
+			{
+				if (_ES64(ctxt->self.selfh->header_type) == 3)
+					_print_segment_info_3(fp, &ctxt->self.si[i], i);
+				else
+					_print_segment_info_2(fp, &ctxt->self.si[i], i);
+			}
 		}
 
 		//Print ELF header.
@@ -930,7 +981,7 @@ static void _add_phdr_section(sce_buffer_ctxt_t *ctxt, u32 p_type, u32 size, u32
 	else
 		ctxt->self.si[idx].encrypted = 0; //No LOAD (?).
 
-	ctxt->self.si[idx].compressed = SECTION_INFO_NOT_COMPRESSED;
+	ctxt->self.si[idx].compressed = SEGMENT_INFO_NOT_COMPRESSED;
 	ctxt->self.si[idx].unknown_0 = 0; //Unknown.
 	ctxt->self.si[idx].unknown_1 = 0; //Unknown.
 }
@@ -983,8 +1034,8 @@ static bool _build_self_32(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 	//Allocate metadata section headers (one for each program header and one for the section headers).
 	ctxt->metash = (metadata_section_header_t *)malloc(sizeof(metadata_section_header_t) * (ehdr->e_phnum + 1));
 
-	//Copy sections, fill section infos and metadata section headers.
-	ctxt->self.si = (section_info_t *)malloc(sizeof(section_info_t) * ehdr->e_phnum);
+	//Copy segments, fill segment infos and metadata section headers.
+	ctxt->self.si = (segment_info_t *)malloc(sizeof(segment_info_t) * ehdr->e_phnum);
 	u32 loff = 0xFFFFFFFF, skip = 0;
 	for(i = 0; i < ehdr->e_phnum; i++)
 	{
@@ -1014,9 +1065,9 @@ static bool _build_self_32(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 		loff = phdrs[i].p_offset;
 	}
 
-	//Section info count.
+	//Segment info count.
 	ctxt->makeself->si_cnt = ehdr->e_phnum;
-	//Number of section infos that are present as data sections.
+	//Number of segment infos that are present as data sections.
 	ctxt->makeself->si_sec_cnt = ehdr->e_phnum;
 
 	//Add a section for the section headers.
@@ -1061,8 +1112,8 @@ static bool _build_self_64(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 	//Allocate metadata section headers (one for each program header and one for the section headers).
 	ctxt->metash = (metadata_section_header_t *)malloc(sizeof(metadata_section_header_t) * (ehdr->e_phnum + 1));
 
-	//Copy sections, fill section infos and metadata section headers.
-	ctxt->self.si = (section_info_t *)malloc(sizeof(section_info_t) * ehdr->e_phnum);
+	//Copy segments, fill segment infos and metadata section headers.
+	ctxt->self.si = (segment_info_t *)malloc(sizeof(segment_info_t) * ehdr->e_phnum);
 	u32 loff = 0xFFFFFFFF, skip = 0;
 	for(i = 0; i < ehdr->e_phnum; i++)
 	{
@@ -1093,9 +1144,9 @@ static bool _build_self_64(sce_buffer_ctxt_t *ctxt, self_config_t *sconf)
 		loff = phdrs[i].p_offset;
 	}
 
-	//Section info count.
+	//Segment info count.
 	ctxt->makeself->si_cnt = ehdr->e_phnum;
-	//Number of section infos that are present as data sections.
+	//Number of segment infos that are present as data sections.
 	ctxt->makeself->si_sec_cnt = i - skip;
 
 	//Add a section for the section headers.

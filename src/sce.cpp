@@ -233,9 +233,9 @@ sce_buffer_ctxt_t *sce_create_ctxt_from_buffer(u8 *scebuffer)
 			res->self.ai = (app_info_t *)(res->scebuffer + _ES64(res->self.selfh->app_info_offset));
 
 			//Section infos.
-			if (_ES64(res->self.selfh->section_info_offset) != NULL)
+			if (_ES64(res->self.selfh->segment_info_offset) != NULL)
 			{
-				res->self.si = (section_info_t *)(res->scebuffer + _ES64(res->self.selfh->section_info_offset));
+				res->self.si = (segment_info_t *)(res->scebuffer + _ES64(res->self.selfh->segment_info_offset));
 			}
 			else
 				res->self.si = 0;
@@ -376,7 +376,7 @@ void sce_compress_data(sce_buffer_ctxt_t *ctxt)
 					//Set compression in section info.
 					if(_ES16(ctxt->cfh->category) == CF_CATEGORY_SELF && i < ctxt->makeself->si_sec_cnt)
 					{
-						ctxt->self.si[i].compressed = SECTION_INFO_COMPRESSED;
+						ctxt->self.si[i].compressed = SEGMENT_INFO_COMPRESSED;
 						//Update size too.
 						ctxt->self.si[i].size = size_comp;
 					}
@@ -470,7 +470,7 @@ void _sce_fixup_ctxt(sce_buffer_ctxt_t *ctxt)
 			ctxt->self.selfh->app_info_offset = _ES64(ctxt->off_self.off_ai);
 			ctxt->self.selfh->elf_offset = _ES64(ctxt->off_self.off_ehdr);
 			ctxt->self.selfh->phdr_offset = _ES64(ctxt->off_self.off_phdr);
-			ctxt->self.selfh->section_info_offset = _ES64(ctxt->off_self.off_si);
+			ctxt->self.selfh->segment_info_offset = _ES64(ctxt->off_self.off_si);
 			ctxt->self.selfh->sce_version_offset = _ES64(ctxt->off_self.off_sv);
 			ctxt->self.selfh->control_info_offset = _ES64(ctxt->off_self.off_cis);
 			ctxt->self.selfh->control_info_size = _ES64(_sce_get_ci_len(ctxt));
@@ -557,7 +557,7 @@ void sce_layout_ctxt(sce_buffer_ctxt_t *ctxt)
 			//ELF Program headers.
 			ctxt->off_self.off_phdr = _INC_OFF_SIZE(coff, ctxt->makeself->phsize);
 			//Section info.
-			ctxt->off_self.off_si = _INC_OFF_SIZE(coff, sizeof(section_info_t) * ctxt->makeself->si_cnt);
+			ctxt->off_self.off_si = _INC_OFF_SIZE(coff, sizeof(segment_info_t) * ctxt->makeself->si_cnt);
 			//SCE version.
 			ctxt->off_self.off_sv = _INC_OFF_TYPE(coff, sce_version_t);
 			//Control infos.
@@ -637,7 +637,7 @@ static void _sce_build_header(sce_buffer_ctxt_t *ctxt)
 			//Section info.
 			u32 i;
 			for(i = 0; i < ctxt->makeself->si_cnt; i++)
-				_copy_es_section_info((section_info_t *)(ctxt->scebuffer + ctxt->off_self.off_si + sizeof(section_info_t) * i), &ctxt->self.si[i]);
+				_copy_es_segment_info((segment_info_t *)(ctxt->scebuffer + ctxt->off_self.off_si + sizeof(segment_info_t) * i), &ctxt->self.si[i]);
 
 			//SCE version.
 			memcpy((sce_version_t *)(ctxt->scebuffer + ctxt->off_self.off_sv), ctxt->self.sv, sizeof(sce_version_t));
