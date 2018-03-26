@@ -147,6 +147,7 @@ id_to_name_t _auth_ids[] =
 	{0x1FF0000008000001, "lv1ldr"},
 	{0x1FF0000009000001, "lv2ldr"},
 	{0x1FF000000A000001, "isoldr"},
+	{0x1FF000000B000001, "rvkldr"},
 	{0x1FF000000C000001, "appldr"},
 	{0, NULL}
 };
