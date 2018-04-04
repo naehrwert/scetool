@@ -273,14 +273,14 @@ static void _print_cap_flags_flags(FILE *fp, oh_data_cap_flags_t *cf)
 		fprintf(fp, "0x02 ");
 	if(_ES64(cf->flags) & 0x04)
 		fprintf(fp, "0x04 ");
-	if(_ES64(cf->flags) & CAP_FLAG_REFTOOL)
-		fprintf(fp, "REFTOOL ");
-	if(_ES64(cf->flags) & CAP_FLAG_DEBUG)
-		fprintf(fp, "DEBUG ");
-	if(_ES64(cf->flags) & CAP_FLAG_RETAIL)
-		fprintf(fp, "RETAIL ");
-	if(_ES64(cf->flags) & CAP_FLAG_SYSDBG)
-		fprintf(fp, "SYSDBG ");
+	if(_ES64(cf->flags) & CAP_FLAG_DEH)
+		fprintf(fp, "DEH ");
+	if(_ES64(cf->flags) & CAP_FLAG_DEX)
+		fprintf(fp, "DEX ");
+	if(_ES64(cf->flags) & CAP_FLAG_CEX)
+		fprintf(fp, "CEX ");
+	if(_ES64(cf->flags) & CAP_FLAG_ARCADE)
+		fprintf(fp, "ARCADE ");
 }
 
 void _print_opt_header(FILE *fp, opt_header_t *oh)
@@ -887,30 +887,30 @@ static void _set_cap_flags(u32 program_type, oh_data_cap_flags_t *capf)
 	switch(program_type)
 	{
 	case PROGRAM_TYPE_LV0:
-		capf->flags = CAP_FLAG_SYSDBG | CAP_FLAG_RETAIL | CAP_FLAG_DEBUG | CAP_FLAG_REFTOOL | 0x3; //0x7B;
+		capf->flags = CAP_FLAG_ARCADE | CAP_FLAG_CEX | CAP_FLAG_DEX | CAP_FLAG_DEH | 0x3; //0x7B;
 		capf->unk6 = 1;
 		break;
 	case PROGRAM_TYPE_LV1:
-		capf->flags = CAP_FLAG_SYSDBG | CAP_FLAG_RETAIL | CAP_FLAG_DEBUG | CAP_FLAG_REFTOOL | 0x3; //0x7B;
+		capf->flags = CAP_FLAG_ARCADE | CAP_FLAG_CEX | CAP_FLAG_DEX | CAP_FLAG_DEH | 0x3; //0x7B;
 		capf->unk6 = 1;
 		break;
 	case PROGRAM_TYPE_LV2:
-		capf->flags = CAP_FLAG_SYSDBG | CAP_FLAG_RETAIL | CAP_FLAG_DEBUG | CAP_FLAG_REFTOOL | 0x3; //0x7B;
+		capf->flags = CAP_FLAG_ARCADE | CAP_FLAG_CEX | CAP_FLAG_DEX | CAP_FLAG_DEH | 0x3; //0x7B;
 		capf->unk6 = 1;
 		break;
 	case PROGRAM_TYPE_APP:
-		capf->flags = CAP_FLAG_SYSDBG | CAP_FLAG_RETAIL | CAP_FLAG_DEBUG | CAP_FLAG_REFTOOL | 0x3; //0x7B;
+		capf->flags = CAP_FLAG_ARCADE | CAP_FLAG_CEX | CAP_FLAG_DEX | CAP_FLAG_DEH | 0x3; //0x7B;
 		capf->unk6 = 1;
 		capf->unk7 = 0x20000;
 		break;
 	case PROGRAM_TYPE_ISO:
-		capf->flags = CAP_FLAG_SYSDBG | CAP_FLAG_RETAIL | CAP_FLAG_DEBUG | CAP_FLAG_REFTOOL; //0x78;
+		capf->flags = CAP_FLAG_ARCADE | CAP_FLAG_CEX | CAP_FLAG_DEX | CAP_FLAG_DEH; //0x78;
 		break;
 	case PROGRAM_TYPE_LDR:
-		capf->flags = CAP_FLAG_SYSDBG | CAP_FLAG_RETAIL | CAP_FLAG_DEBUG | CAP_FLAG_REFTOOL; //0x78;
+		capf->flags = CAP_FLAG_ARCADE | CAP_FLAG_CEX | CAP_FLAG_DEX | CAP_FLAG_DEH; //0x78;
 		break;
 	case PROGRAM_TYPE_NPDRM:
-		capf->flags = CAP_FLAG_RETAIL | CAP_FLAG_DEBUG | CAP_FLAG_REFTOOL | 0x3; //0x3B;
+		capf->flags = CAP_FLAG_CEX | CAP_FLAG_DEX | CAP_FLAG_DEH | 0x3; //0x3B;
 		capf->unk6 = 1;
 		capf->unk7 = 0x2000;
 		break;

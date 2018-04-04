@@ -432,10 +432,10 @@ typedef struct _opt_header
 #define CAP_FLAG_1 0x01 //only seen in PPU selfs
 #define CAP_FLAG_2 0x02 //only seen in PPU selfs
 #define CAP_FLAG_4 0x04 //only seen in bdj PPU self
-#define CAP_FLAG_REFTOOL 0x08
-#define CAP_FLAG_DEBUG 0x10
-#define CAP_FLAG_RETAIL 0x20
-#define CAP_FLAG_SYSDBG 0x40
+#define CAP_FLAG_DEH 0x08
+#define CAP_FLAG_DEX 0x10
+#define CAP_FLAG_CEX 0x20
+#define CAP_FLAG_ARCADE 0x40
 
 #define UNK7_2000 0x2000 //hddbind?
 #define UNK7_20000 0x20000 //flashbind?
