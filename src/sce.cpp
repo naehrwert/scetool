@@ -93,8 +93,11 @@ static void _print_metadata_section_header_header(FILE *fp)
 
 void _print_metadata_section_header(FILE *fp, metadata_section_header_t *msh, u32 idx)
 {
-	fprintf(fp, " %03d %08llX %08llX %02X   %02X    ", 
-		idx, _ES64(msh->data_offset), _ES64(msh->data_size), _ES32(msh->type), _ES32(msh->index));
+	const s8 *name;
+	name = _get_name(_msh_types, _ES32(msh->type));
+
+	fprintf(fp, " %03d %08llX %08llX %s %02X    ", 
+		idx, _ES64(msh->data_offset), _ES64(msh->data_size), name, _ES32(msh->index));
 
 	if(_ES32(msh->hashed) == METADATA_SECTION_HASHED)
 		fprintf(fp, "[YES]  %02X   ", _ES32(msh->sha1_index));
@@ -129,7 +132,7 @@ void _print_sce_file_keys(FILE *fp, sce_buffer_ctxt_t *ctxt)
 
 void _print_sce_signature(FILE *fp, signature_t *sig)
 {
-	fprintf(fp, "[*] Signature:\n");
+	fprintf(fp, "[*] Signature Info:\n");
 	_hexdump(fp, " R", 0, sig->r, SIGNATURE_R_SIZE, FALSE);
 	_hexdump(fp, " S", 0, sig->s, SIGNATURE_S_SIZE, FALSE);
 }
@@ -138,7 +141,7 @@ void _print_sce_signature_status(FILE *fp, sce_buffer_ctxt_t *ctxt, u8 *keyset)
 {
 	u8 hash[0x14];
 	u8 Q[0x28];
-	u8 M[0x14];
+	u8 K[0x14];
 	u8 zero_buf[0x14];
 	keyset_t *ks;
 
@@ -156,16 +159,34 @@ void _print_sce_signature_status(FILE *fp, sce_buffer_ctxt_t *ctxt, u8 *keyset)
 	
 	//Generate header hash.
 	sha1(ctxt->scebuffer, _ES64(ctxt->metah->sig_input_length), hash);
-	_hexdump(fp, " E", 0, hash, 0x14, FALSE);
-
+	_hexdump(fp, " H", 0, hash, 0x14, FALSE);
+	
+	//get curve params
+	u8 *ec_p = (u8 *)malloc(sizeof(u8) * 20);
+	u8 *ec_a = (u8 *)malloc(sizeof(u8) * 20);
+	u8 *ec_b = (u8 *)malloc(sizeof(u8) * 20);
+	u8 *ec_N = (u8 *)malloc(sizeof(u8) * 21);
+	u8 *ec_Gx = (u8 *)malloc(sizeof(u8) * 20);
+	u8 *ec_Gy = (u8 *)malloc(sizeof(u8) * 20);
+	memset(ec_p, 0, 20);
+	memset(ec_a, 0, 20);
+	memset(ec_b, 0, 20);
+	memset(ec_N, 0, 21);
+	memset(ec_Gx, 0, 20);
+	memset(ec_Gy, 0, 20);
+	//Print curve order N
+	if (ecdsa_get_params(ks->ctype, ec_p, ec_a, ec_b, ec_N, ec_Gx, ec_Gy) == 0)
+		_hexdump (fp, " N", 0, ec_N + 1, 20, FALSE);
+	
+	//Set ecdsa params
 	ecdsa_set_curve(ks->ctype);
 	ecdsa_set_pub(ks->pub);
 
-	//validate private key and calculate M
+	//Validate private key and calculate K
 	ec_priv_to_pub(ks->priv, Q);
-	get_m(ctxt->sig->r, ctxt->sig->s, hash, ks->priv, M);
+	get_m(ctxt->sig->r, ctxt->sig->s, hash, ks->priv, K);
 	if (memcmp(ks->pub, Q, sizeof(Q)) == 0)
-		_hexdump (fp, " M", 0, M, 0x14, FALSE);
+		_hexdump (fp, " K", 0, K, 0x14, FALSE);
 
 	//Validate the signature.
 	memset(zero_buf, 0, sizeof(zero_buf));

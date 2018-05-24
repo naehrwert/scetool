@@ -221,6 +221,15 @@ id_to_name_t _ph_types[] =
 	{0, NULL}
 };
 
+/*! Metadata section header types. */
+id_to_name_t _msh_types[] = 
+{
+	{METADATA_SECTION_TYPE_SHDR, "SHDR"},
+	{METADATA_SECTION_TYPE_PHDR, "PHDR"},
+	{METADATA_SECTION_TYPE_SCEV, "SCEV"},
+	{0, NULL}
+};
+
 /*! Key types. */
 id_to_name_t _key_categories[] = 
 {

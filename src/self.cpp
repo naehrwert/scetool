@@ -50,32 +50,32 @@ void _print_self_header(FILE *fp, self_header_t *h)
 {
 	fprintf(fp, "[*] Extended Header:\n");
 	fprintf(fp, "[*] Signed Elf Header:\n");
-	fprintf(fp, " Version             0x%016llX\n", _ES64(h->header_type));
-	fprintf(fp, " Program Info Offset 0x%016llX\n", _ES64(h->app_info_offset));
-	fprintf(fp, " ELF Offset          0x%016llX\n", _ES64(h->elf_offset));
-	fprintf(fp, " PH Offset           0x%016llX\n", _ES64(h->phdr_offset));
+	fprintf(fp, " Version                    0x%016llX\n", _ES64(h->header_type));
+	fprintf(fp, " Prog Ident Header Offset   0x%016llX\n", _ES64(h->app_info_offset));
+	fprintf(fp, " ELF Header Offset          0x%016llX\n", _ES64(h->elf_offset));
+	fprintf(fp, " ELF Program Headers Offset 0x%016llX\n", _ES64(h->phdr_offset));
 	
 	if ((_ES64(h->shdr_offset)) != 0)
-		fprintf(fp, " SH Offset           0x%016llX\n", _ES64(h->shdr_offset));
+		fprintf(fp, " ELF Section Headers Offset 0x%016llX\n", _ES64(h->shdr_offset));
 	else
-		fprintf(fp, " SH Offset           N\\A\n");
+		fprintf(fp, " ELF Section Headers Offset N\\A\n");
 	
-	fprintf(fp, " Segment Info Offset 0x%016llX\n", _ES64(h->segment_info_offset));
+	fprintf(fp, " Segment Info Offset        0x%016llX\n", _ES64(h->segment_info_offset));
 	
 	if ((_ES64(h->sce_version_offset)) != 0)
-		fprintf(fp, " SCE Version Offset  0x%016llX\n", _ES64(h->sce_version_offset));
+		fprintf(fp, " SCE Version Offset         0x%016llX\n", _ES64(h->sce_version_offset));
 	else
-		fprintf(fp, " SCE Version Offset  N\\A\n");
+		fprintf(fp, " SCE Version Offset         N\\A\n");
 
 	if ((_ES64(h->control_info_offset)) != 0)
 	{
-		fprintf(fp, " Control Info Offset 0x%016llX\n", _ES64(h->control_info_offset));
-		fprintf(fp, " Control Info Size   0x%016llX\n", _ES64(h->control_info_size));
+		fprintf(fp, " Supplemental Header Offset 0x%016llX\n", _ES64(h->control_info_offset));
+		fprintf(fp, " Supplemental Header Size   0x%016llX\n", _ES64(h->control_info_size));
 	}
 	else
 	{
-		fprintf(fp, " Control Info Offset N\\A\n");
-		fprintf(fp, " Control Info Size   N\\A\n");
+		fprintf(fp, " Supplemental Header Offset N\\A\n");
+		fprintf(fp, " Supplemental Header Size   N\\A\n");
 	}
 	//fprintf(fp, " padding             0x%016llX\n", _ES64(h->padding));
 }
@@ -84,7 +84,7 @@ void _print_app_info(FILE *fp, app_info_t *ai)
 {
 	const s8 *name;
 
-	fprintf(fp, "[*] Program Ident Header:\n");
+	fprintf(fp, "[*] Program Identification Header:\n");
 	
 	name = _get_name(_auth_ids, _ES64(ai->auth_id));
 	if(name != NULL)
@@ -167,7 +167,7 @@ void _print_control_info(FILE *fp, control_info_t *ci)
 	time_t t;
 	tm* aTm;
 
-	fprintf(fp, "[*] Control Info\n");
+	fprintf(fp, "[*] Supplemental Header\n");
 
 	name = _get_name(_control_info_types, _ES32(ci->type));
 	if(name != NULL)

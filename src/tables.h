@@ -45,6 +45,9 @@ extern id_to_name_t _sh_types[];
 /*! Program header types. */
 extern id_to_name_t _ph_types[];
 
+/*! Metadata section header types. */
+extern id_to_name_t _msh_types[];
+
 /*! Key types. */
 extern id_to_name_t _key_categories[];
 

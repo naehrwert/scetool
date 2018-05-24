@@ -96,8 +96,8 @@
 #define METADATA_SECTION_TYPE_SHDR 1
 /*! Program header. */
 #define METADATA_SECTION_TYPE_PHDR 2
-/*! Unknown header type 3. */
-#define METADATA_SECTION_TYPE_UNK_3 3
+/*! Sceversion section. */
+#define METADATA_SECTION_TYPE_SCEV 3
 
 /*! Section is hashed. */
 #define METADATA_SECTION_HASHED 2
@@ -432,10 +432,10 @@ typedef struct _opt_header
 #define CAP_FLAG_1 0x01 //only seen in PPU selfs
 #define CAP_FLAG_2 0x02 //only seen in PPU selfs
 #define CAP_FLAG_4 0x04 //only seen in bdj PPU self
-#define CAP_FLAG_DEH 0x08
-#define CAP_FLAG_DEX 0x10
-#define CAP_FLAG_CEX 0x20
-#define CAP_FLAG_ARCADE 0x40
+#define CAP_FLAG_DEH 0x08     //00001000b
+#define CAP_FLAG_DEX 0x10     //00010000b
+#define CAP_FLAG_CEX 0x20     //00100000b
+#define CAP_FLAG_ARCADE 0x40  //01000000b
 
 #define UNK7_2000 0x2000 //hddbind?
 #define UNK7_20000 0x20000 //flashbind?
